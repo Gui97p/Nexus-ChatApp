@@ -2,7 +2,7 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { AuthInput } from "./auth.schema";
 import { findUserByEmail } from "../user/user.service";
 import bcrypt from "bcrypt";
-import { app } from "..";
+import { app } from "../..";
 
 export async function authHandler(req: FastifyRequest, res: FastifyReply) {
     const { email, password } = req.body as AuthInput;

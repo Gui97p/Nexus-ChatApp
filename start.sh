@@ -15,5 +15,9 @@ echo "Starting the server..."
 if [ "$NODE_ENV" = "development" ]; then
   npx ts-node-dev --respawn --transpile-only src/index.ts
 else
+  if [ ! -f "dist/index.js" ]; then
+    echo "Error: dist/index.js not found. Did you run the build step?"
+    exit 1
+  fi
   node dist/index.js
 fi

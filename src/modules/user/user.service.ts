@@ -1,5 +1,5 @@
-import prisma from "../utils/prisma";
-import { CreateUserInput } from "./user.schema";
+import prisma from "../../utils/prisma";
+import { CreateUserInput, UpdateUserInput } from "./user.schema";
 import bcrypt from 'bcrypt';
 
 export function findUsers() {
@@ -7,6 +7,8 @@ export function findUsers() {
         select: {
             id: true,
             name: true,
+            displayName: true,
+            avatar: true,
             email: true,
             createdAt: true,
             updatedAt: true,
@@ -18,6 +20,14 @@ export function findUserByEmail(email: string) {
     return prisma.user.findUnique({
         where: {
             email,
+        },
+    });
+}
+
+export function findUserById(id: string) {
+    return prisma.user.findUnique({
+        where: {
+            id,
         },
     });
 }
@@ -35,3 +45,19 @@ export async function createUser(data: CreateUserInput) {
     });
 }
 
+export async function updateUser(id: string, data: UpdateUserInput) {
+    return prisma.user.update({
+        where: {
+            id,
+        },
+        data,
+    });
+}
+
+export async function deleteUser(id: string) {
+    return prisma.user.delete({
+        where: {
+            id,
+        },
+    });
+}

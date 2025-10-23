@@ -1,10 +1,11 @@
 import "dotenv/config";
 import Fastify from "fastify";
 import fjwt from "fastify-jwt";
+import cors from "@fastify/cors"
 import swagger from "@fastify/swagger";
 import swaggerUI from "@fastify/swagger-ui";
-import { registerUserRoutes } from "./user/user.route";
-import { registerAuthRoutes } from "./auth/auth.route";
+import { registerUserRoutes } from "./modules/user/user.route";
+import { registerAuthRoutes } from "./modules/auth/auth.route";
 import { version } from "../package.json";
 
 export const app = Fastify({
@@ -29,7 +30,7 @@ app.register(swagger, {
       version,
     },
     host: "localhost:3000", 
-    schemes: ["http"],
+    //schemes: ["http", "ws"],
     consumes: ["application/json"],
     produces: ["application/json"],
   },
@@ -37,20 +38,20 @@ app.register(swagger, {
 
 app.register(swaggerUI, {
   routePrefix: "/docs",
-  swagger: {
-    info: {
-      title: "API Nexus",
-      version,
-    },
-  },
   uiConfig: {
     docExpansion: "full",
     deepLinking: false,
   },
+  staticCSP: true,
 });
 
 async function main() {
     try {
+        app.register(cors, {
+          origin: '*', 
+          methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
+          credentials: true,
+        })
         app.register(fjwt, {
             secret: process.env.JWT_SECRET || 'defaultsecret',
             sign: { expiresIn: "30d" },
