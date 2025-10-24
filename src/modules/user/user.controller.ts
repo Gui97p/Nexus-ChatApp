@@ -1,14 +1,27 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { createUser, deleteUser, findUserById, findUsers, updateUser } from "./user.service";
+import { createUser, deleteUser, findUserByEmail, findUserById, findUserByName, findUsers, updateUser } from "./user.service";
 import { CreateUserInput, UpdateUserInput } from "./user.schema";
 
 export async function getUsersHandler() {
     return await findUsers();
 }
 
+export async function getMeHandler(req: FastifyRequest, res: FastifyReply) {
+    const userId = req.user.userId;
+
+    const user = await findUserById( userId );
+
+    if (!user) {
+        return res.status(404).send({ message: "User not found" });
+    }
+
+    const { password, ...userWithoutPassword } = user;
+    
+    return res.send(userWithoutPassword);
+}
+
 export async function getUserHandler(req: FastifyRequest, res: FastifyReply) {
     const { id } = req.params as { id: string };
-    console.log(req.user.userId)
 
     const user = await findUserById( id )
 
@@ -23,6 +36,16 @@ export async function getUserHandler(req: FastifyRequest, res: FastifyReply) {
 
 export async function createUserHandler(req: FastifyRequest, res: FastifyReply) {
     const body = req.body as CreateUserInput;
+
+    let existingUser = await findUserByEmail(body.email);
+    if (existingUser) {
+        return res.status(409).send({ message: "Email already in use" });
+    }
+    existingUser = await findUserByName(body.name);
+    if (existingUser) {
+        return res.status(409).send({ message: "Username already in use" });
+    }
+
     const user = await createUser(body);
 
     const { password, ...userWithoutPassword } = user;

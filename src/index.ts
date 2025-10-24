@@ -7,6 +7,7 @@ import swaggerUI from "@fastify/swagger-ui";
 import { registerUserRoutes } from "./modules/user/user.route";
 import { registerAuthRoutes } from "./modules/auth/auth.route";
 import { version } from "../package.json";
+import { registerMessageRoutes } from "./modules/message/message.route";
 
 export const app = Fastify({
     logger: true,
@@ -54,11 +55,12 @@ async function main() {
         })
         app.register(fjwt, {
             secret: process.env.JWT_SECRET || 'defaultsecret',
-            sign: { expiresIn: "30d" },
+            sign: { expiresIn: "1y" },
         });
 
         app.register(registerUserRoutes, { prefix: "/api/users" });
         app.register(registerAuthRoutes, { prefix: "/api/auth" });
+        app.register(registerMessageRoutes, { prefix: "/api/messages" });
 
         await app.listen({ port, host: "0.0.0.0"});
     } catch (err) {

@@ -24,6 +24,14 @@ export function findUserByEmail(email: string) {
     });
 }
 
+export function findUserByName(name: string) {
+    return prisma.user.findUnique({
+        where: {
+            name,
+        },
+    });
+}
+
 export function findUserById(id: string) {
     return prisma.user.findUnique({
         where: {
