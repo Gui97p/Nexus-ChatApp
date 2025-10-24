@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const CreateMessageSchema = z.object({
     content: z.string().min(1, "Content cannot be empty"),
-    response: z.string().optional(),
+    responseId: z.string().optional(),
 })
 
 export const UpdateMessageSchema = z.object({
