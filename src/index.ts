@@ -4,10 +4,12 @@ import fjwt from "fastify-jwt";
 import cors from "@fastify/cors"
 import swagger from "@fastify/swagger";
 import swaggerUI from "@fastify/swagger-ui";
+import { Server } from "socket.io";
 import { registerUserRoutes } from "./modules/user/user.route";
 import { registerAuthRoutes } from "./modules/auth/auth.route";
 import { version } from "../package.json";
 import { registerMessageRoutes } from "./modules/message/message.route";
+import { setupWebSocket } from "./websockets";
 
 export const app = Fastify({
     logger: true,
@@ -20,6 +22,12 @@ declare module "fastify-jwt" {
   interface FastifyJWT {
     payload: { userId: string };
     user: { userId: string };
+  }
+}
+
+declare module "fastify" {
+  interface FastifyInstance {
+    io: Server;
   }
 }
 
@@ -57,6 +65,8 @@ async function main() {
             secret: process.env.JWT_SECRET || 'defaultsecret',
             sign: { expiresIn: "1y" },
         });
+
+        app.register(setupWebSocket);
 
         app.register(registerUserRoutes, { prefix: "/api/users" });
         app.register(registerAuthRoutes, { prefix: "/api/auth" });

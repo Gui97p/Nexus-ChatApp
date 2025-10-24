@@ -1,6 +1,8 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { createMessage, deleteMessage, getMessageById, getMessages, getMessagesByAuthor, updateMessage } from "./message.service";
 import { CreateMessageInput, UpdateMessageInput } from "./message.schema";
+import { app } from "../..";
+import { getSocketServer } from "../../utils/socket";
 
 export async function getMessagesHandler(req: FastifyRequest, res: FastifyReply) {
     const { quantity, offset } = req.query as { quantity?: number; offset?: number };
@@ -33,6 +35,8 @@ export async function createMessageHandler(req: FastifyRequest, res: FastifyRepl
 
     const newMessage = await createMessage(body);
 
+    getSocketServer().to('channel:global').emit("message:new", newMessage);
+
     return res.code(201).send({ message: newMessage });
 }
 
@@ -53,6 +57,8 @@ export async function updateMessageHandler(req: FastifyRequest, res: FastifyRepl
 
     const updatedMessage = await updateMessage(id, content);
 
+    getSocketServer().to('channel:global').emit("message:updated", updatedMessage);
+
     return res.send({ message: updatedMessage });
 }
 
@@ -71,6 +77,8 @@ export async function deleteMessageHandler(req: FastifyRequest, res: FastifyRepl
     }
 
     await deleteMessage(id);
+
+    getSocketServer().to('channel:global').emit("message:deleted", { id });
 
     return res.send({ message: "Message deleted successfully" });
 }
