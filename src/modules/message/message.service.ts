@@ -3,7 +3,7 @@ import prisma from "../../utils/prisma";
 export function getMessages(quantity?: number, offset?: number) {
     return prisma.message.findMany({
         take: quantity,
-        skip: offset || 0,
+        skip: offset,
         orderBy: { createdAt: 'desc' },
         include: {
             author: {

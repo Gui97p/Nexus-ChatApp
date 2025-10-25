@@ -4,19 +4,31 @@ import { CreateMessageInput, UpdateMessageInput } from "./message.schema";
 import { app } from "../..";
 import { getSocketServer } from "../../utils/socket";
 
-export async function getMessagesHandler(req: FastifyRequest, res: FastifyReply) {
-    const { quantity, offset } = req.query as { quantity?: number; offset?: number };
+function parseToInt(value: string | undefined, defaultValue?: number): number | undefined {
+    if (!value) return defaultValue;
+    const parsed = parseInt(value);
+    return isNaN(parsed) ? defaultValue : parsed;
+}
 
-    const messages = await getMessages(quantity, offset);
+export async function getMessagesHandler(req: FastifyRequest, res: FastifyReply) {
+    const { limit, offset } = req.query as { limit?: string; offset?: string };
+    const newlimit = parseToInt(limit);
+    const newOffset = parseToInt(offset);
+    console.log(newlimit, newOffset);
+
+    const messages = await getMessages(newlimit, newOffset);
 
     return res.send({ message: messages });
 }
 
 export async function getMessagesByAuthorHandler(req: FastifyRequest, res: FastifyReply) {
     const { userId } = req.params as { userId: string };
-    const { quantity, offset } = req.query as { quantity?: number; offset?: number };
+    const { limit, offset } = req.query as { limit?: string; offset?: string };
+    const newlimit = parseToInt(limit);
+    const newOffset = parseToInt(offset);
 
-    const messages = await getMessagesByAuthor(userId, quantity, offset);
+
+    const messages = await getMessagesByAuthor(userId, newlimit, newOffset);
 
     return res.send({ message: messages });
 }
