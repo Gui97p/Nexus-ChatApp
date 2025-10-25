@@ -35,7 +35,8 @@ export async function createMessageHandler(req: FastifyRequest, res: FastifyRepl
 
     const newMessage = await createMessage(body);
 
-    getSocketServer().to('channel:global').emit("message:new", newMessage);
+    const server = getSocketServer()
+    server.to('channel:global').emit("message:new", newMessage);
 
     return res.code(201).send({ message: newMessage });
 }
@@ -57,7 +58,8 @@ export async function updateMessageHandler(req: FastifyRequest, res: FastifyRepl
 
     const updatedMessage = await updateMessage(id, content);
 
-    getSocketServer().to('channel:global').emit("message:updated", updatedMessage);
+    const server = getSocketServer()
+    server.to('channel:global').emit("message:updated", updatedMessage);
 
     return res.send({ message: updatedMessage });
 }
@@ -78,7 +80,8 @@ export async function deleteMessageHandler(req: FastifyRequest, res: FastifyRepl
 
     await deleteMessage(id);
 
-    getSocketServer().to('channel:global').emit("message:deleted", { id });
+    const server = getSocketServer()
+    server.to('channel:global').emit("message:deleted", { id });
 
     return res.send({ message: "Message deleted successfully" });
 }

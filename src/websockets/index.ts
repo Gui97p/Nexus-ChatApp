@@ -2,6 +2,7 @@ import { FastifyInstance } from "fastify";
 import { Server } from "socket.io";
 import { registerMessageEvents } from "./message/message.events";
 import { setSocketServer } from "../utils/socket";
+import { onConnectPresence, onDisconnectPresence, registerPresenceEvents } from "./presence/presence.events";
 
 export async function setupWebSocket(app: FastifyInstance) {
     const server = new Server(app.server, {
@@ -44,12 +45,17 @@ export async function setupWebSocket(app: FastifyInstance) {
             socket.emit("pong", { message: "pong" });
         })
 
+        onConnectPresence(server, socket);
+
         registerMessageEvents(server, socket);
+        registerPresenceEvents(server, socket);
 
         socket.on("disconnect", () => {
             console.log(`User disconnected: ${socket.data.userId}`);
             socket.leave('channel:global');
             socket.leave(`user:${socket.data.userId}`);
+            
+            onDisconnectPresence(server, socket);
         });
     });
 
