@@ -4,7 +4,16 @@ export function getMessages(quantity?: number, offset?: number) {
     return prisma.message.findMany({
         take: quantity,
         skip: offset || 0,
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
+        include: {
+            author: {
+                select: {
+                   name: true,
+                   displayName: true,
+                   avatar: true, 
+                }
+            }
+        }
     });
 }
 
@@ -13,19 +22,46 @@ export function getMessagesByAuthor(userId: string, quantity?: number, offset?: 
         where: { authorId: userId },
         take: quantity,
         skip: offset || 0,
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
+        include: {
+            author: {
+                select: {
+                   name: true,
+                   displayName: true,
+                   avatar: true, 
+                }
+            }
+        }
     });
 }
 
 export function getMessageById(id: string) {
     return prisma.message.findUnique({
-        where: { id }
+        where: { id },
+        include: {
+            author: {
+                select: {
+                   name: true,
+                   displayName: true,
+                   avatar: true, 
+                }
+            }
+        }
     });
 }
 
 export function createMessage(data: { content: string; responseId?: string; authorId: string }) {
     return prisma.message.create({
-        data
+        data,
+        include: {
+            author: {
+                select: {
+                   name: true,
+                   displayName: true,
+                   avatar: true, 
+                }
+            }
+        }
     });
 }
 
