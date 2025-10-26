@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { Server } from "socket.io";
-import { registerMessageEvents } from "./message/message.events";
+import { onConnectMessage, onDisconnectMessage, registerMessageEvents } from "./message/message.events";
 import { setSocketServer } from "../utils/socket";
 import { onConnectPresence, onDisconnectPresence, registerPresenceEvents } from "./presence/presence.events";
 
@@ -45,6 +45,7 @@ export async function setupWebSocket(app: FastifyInstance) {
             socket.emit("pong", { message: "pong" });
         })
 
+        onConnectMessage(server, socket);
         onConnectPresence(server, socket);
 
         registerMessageEvents(server, socket);
@@ -52,9 +53,9 @@ export async function setupWebSocket(app: FastifyInstance) {
 
         socket.on("disconnect", () => {
             console.log(`User disconnected: ${socket.data.userId}`);
-            socket.leave('channel:global');
             socket.leave(`user:${socket.data.userId}`);
-            
+
+            onDisconnectMessage(server, socket);
             onDisconnectPresence(server, socket);
         });
     });

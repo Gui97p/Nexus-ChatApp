@@ -17,7 +17,7 @@ export const createUserSchema = z.object({
 
 export const updateUserSchema = z.object({
     name: stringCheck('Name').min(3).max(16),
-    displayName: stringCheck('Display Name').min(3).max(32),
+    displayName: stringCheck('Display Name').min(1).max(32),
     email: stringCheck('Email').email({
         message: "Invalid email address",
     }),

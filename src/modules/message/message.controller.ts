@@ -1,7 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { createMessage, deleteMessage, getMessageById, getMessages, getMessagesByAuthor, updateMessage } from "./message.service";
 import { CreateMessageInput, UpdateMessageInput } from "./message.schema";
-import { app } from "../..";
 import { getSocketServer } from "../../utils/socket";
 
 function parseToInt(value: string | undefined, defaultValue?: number): number | undefined {
