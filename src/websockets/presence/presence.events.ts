@@ -22,8 +22,9 @@ async function getUserData(userIdArray: string[]): Promise<Partial<User>[]> {
 }
 
 export async function registerPresenceEvents(server: Server, socket: Socket) {
-    socket.on('presence:sync', () => {
-        socket.emit('presence:sync', { onlineUsers: Array.from(onlineUsers) })
+    socket.on('presence:sync', async () => {
+        const userData = await getUserData(Array.from(onlineUsers))
+        socket.emit('presence:sync', { onlineUsers: userData })
     })
 }
 

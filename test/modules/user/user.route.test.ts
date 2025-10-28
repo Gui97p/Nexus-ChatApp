@@ -3,7 +3,7 @@ import app from "../../../src/app";
 import prisma from "../../../src/utils/prisma";
 import { randomUUID } from "crypto";
 
-function createUser() {
+export function createUser() {
     const uuid = randomUUID()
     return prisma.user.create({
         data: {
@@ -14,7 +14,7 @@ function createUser() {
     })
 }
 
-function deleteUser(id: string) {
+export function deleteUser(id: string) {
     return prisma.user.delete({
         where: { id }
     })

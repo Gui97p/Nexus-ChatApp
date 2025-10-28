@@ -31,10 +31,12 @@ model Message {
   content   String
   authorId  String
   author    User     @relation("AuthorMessages", fields: [authorId], references: [id])
-  responseId String?
-  response  Message? @relation("ResponseTo", fields: [responseId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  responses Message[] @relation("ResponseTo")
+  silent    Boolean  @default(false)
+  private   Boolean  @default(false)
+
+  repliedTo  Message[]  @relation("MessageReplies")
+  replies    Message[]  @relation("MessageReplies")
 }

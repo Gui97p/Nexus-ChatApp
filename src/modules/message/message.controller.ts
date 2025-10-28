@@ -2,6 +2,7 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { createMessage, deleteMessage, getMessageById, getMessages, getMessagesByAuthor, updateMessage } from "./message.service";
 import { CreateMessageInput, UpdateMessageInput } from "./message.schema";
 import { getSocketServer } from "../../utils/socket";
+import { createMessageType } from "./message.types";
 
 function parseToInt(value: string | undefined, defaultValue?: number): number | undefined {
     if (!value) return defaultValue;
@@ -26,7 +27,6 @@ export async function getMessagesByAuthorHandler(req: FastifyRequest, res: Fasti
     const newlimit = parseToInt(limit);
     const newOffset = parseToInt(offset);
 
-
     const messages = await getMessagesByAuthor(userId, newlimit, newOffset);
 
     return res.send({ message: messages });
@@ -44,7 +44,11 @@ export async function createMessageHandler(req: FastifyRequest, res: FastifyRepl
     const body = req.body as CreateMessageInput & { authorId: string };
     body.authorId = req.user.userId;
 
-    const newMessage = await createMessage(body);
+    const createData = { ...body } as createMessageType
+    createData.replies = []
+    body.replies?.forEach(id => createData.replies?.push({ id }))
+
+    const newMessage = await createMessage(createData);
 
     const server = getSocketServer()
     server.to('channel:global').emit("message:new", newMessage);
