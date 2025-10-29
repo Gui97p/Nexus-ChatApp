@@ -7,11 +7,7 @@ const content = z
   .max(2000, 'Content cannot exceed 2000 characters');
 
 const pagination = z.object({
-  limit: z
-    .string()
-    .regex(/^\d+$/, 'Limit must be a number')
-    .transform((v) => parseInt(v, 10))
-    .optional(),
+  limit: z.coerce.number().int().optional(),
 
   before: Schema.idOrDate.optional(),
   after: Schema.idOrDate.optional(),
