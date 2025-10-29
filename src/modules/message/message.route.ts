@@ -18,36 +18,43 @@ import {
   getMessageByIdRequest,
   UpdateMessageRequest,
 } from './message.types';
+import { MessageDocs } from './message.docs';
 
 export function registerMessageRoutes(app: FastifyInstance) {
   app.get<getAllMessages>(
     '/',
-    { preHandler: [authenticate, zodValidate(MessageSchemas.getAll)] },
+    { preHandler: [authenticate, zodValidate(MessageSchemas.getAll)], schema: MessageDocs.getAll },
     getMessagesHandler,
   );
   app.get<getMessageByAuthorRequest>(
     '/author/:id',
-    { preHandler: [authenticate, zodValidate(MessageSchemas.getByAuthor)] },
+    {
+      preHandler: [authenticate, zodValidate(MessageSchemas.getByAuthor)],
+      schema: MessageDocs.getByAuthor,
+    },
     getMessagesByAuthorHandler,
   );
   app.get<getMessageByIdRequest>(
     '/:id',
-    { preHandler: [authenticate, zodValidate(MessageSchemas.getById)] },
+    {
+      preHandler: [authenticate, zodValidate(MessageSchemas.getById)],
+      schema: MessageDocs.getById,
+    },
     getMessageHandler,
   );
   app.post<CreateMessageRequest>(
     '/',
-    { preHandler: [authenticate, zodValidate(MessageSchemas.create)] },
+    { preHandler: [authenticate, zodValidate(MessageSchemas.create)], schema: MessageDocs.create },
     createMessageHandler,
   );
   app.patch<UpdateMessageRequest>(
     '/:id',
-    { preHandler: [authenticate, zodValidate(MessageSchemas.update)] },
+    { preHandler: [authenticate, zodValidate(MessageSchemas.update)], schema: MessageDocs.update },
     updateMessageHandler,
   );
   app.delete<DeleteMessageRequest>(
     '/:id',
-    { preHandler: [authenticate, zodValidate(MessageSchemas.delete)] },
+    { preHandler: [authenticate, zodValidate(MessageSchemas.delete)], schema: MessageDocs.delete },
     deleteMessageHandler,
   );
 }

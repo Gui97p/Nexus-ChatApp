@@ -9,7 +9,7 @@ function stringCheck(name: string) {
 }
 
 export const UserSchemas = {
-  geyById: {
+  getById: {
     params: Schemas.cuidParam,
   },
 

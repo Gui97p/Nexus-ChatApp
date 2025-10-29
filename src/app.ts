@@ -1,71 +1,58 @@
-import Fastify from "fastify";
-import fjwt from "fastify-jwt";
-import cors from "@fastify/cors"
-import swagger from "@fastify/swagger";
-import swaggerUI from "@fastify/swagger-ui";
-import { Server } from "socket.io";
-import { registerUserRoutes } from "./modules/user/user.route";
-import { registerAuthRoutes } from "./modules/auth/auth.route";
-import { version } from "../package.json";
-import { registerMessageRoutes } from "./modules/message/message.route";
-import { setupWebSocket } from "./websockets";
+import Fastify from 'fastify';
+import fjwt from 'fastify-jwt';
+import cors from '@fastify/cors';
+import { Server } from 'socket.io';
+import { registerUserRoutes } from './modules/user/user.route';
+import { registerAuthRoutes } from './modules/auth/auth.route';
+import { registerMessageRoutes } from './modules/message/message.route';
+import { setupWebSocket } from './websockets';
+import { setupSwagger } from './plugins/swagger';
+import { registerSchemas } from './plugins/registerSchemas';
 
-const app = Fastify({
-    logger: true,
-});
-
-app.get("/ping", async () => ({ message: "pong!" }));
-
-declare module "fastify-jwt" {
+declare module 'fastify-jwt' {
   interface FastifyJWT {
     payload: { userId: string };
     user: { userId: string };
   }
 }
 
-declare module "fastify" {
+declare module 'fastify' {
   interface FastifyInstance {
     io: Server;
   }
 }
 
-app.register(swagger, {
-  swagger: {
-    info: {
-      title: "API Nexus",
-      description: "Documentação da API",
-      version,
+async function buildApp() {
+  const app = Fastify({
+    logger: true,
+    ajv: {
+      customOptions: {
+        strict: false,
+      },
     },
-    host: "localhost:3000", 
-    //schemes: ["http", "ws"],
-    consumes: ["application/json"],
-    produces: ["application/json"],
-  },
-});
+  });
 
-app.register(swaggerUI, {
-  routePrefix: "/docs",
-  uiConfig: {
-    docExpansion: "full",
-    deepLinking: false,
-  },
-  staticCSP: true,
-});
+  app.get('/ping', async () => ({ message: 'pong!' }));
 
-app.register(cors, {
-  origin: '*', 
-  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
-  credentials: true,
-})
-app.register(fjwt, {
-  secret: process.env.JWT_SECRET || 'defaultsecret',
-  sign: { expiresIn: "1y" },
-});
+  app.register(cors, {
+    origin: '*',
+    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
+    credentials: true,
+  });
+  app.register(fjwt, {
+    secret: process.env.JWT_SECRET || 'defaultsecret',
+    sign: { expiresIn: '1y' },
+  });
 
-app.register(setupWebSocket);
+  await registerSchemas(app);
+  await setupSwagger(app);
+  app.register(setupWebSocket);
 
-app.register(registerUserRoutes, { prefix: "/api/users" });
-app.register(registerAuthRoutes, { prefix: "/api/auth" });
-app.register(registerMessageRoutes, { prefix: "/api/messages" });
+  app.register(registerUserRoutes, { prefix: '/api/users' });
+  app.register(registerAuthRoutes, { prefix: '/api/auth' });
+  app.register(registerMessageRoutes, { prefix: '/api/messages' });
 
-export default app;
+  return app;
+}
+
+export default buildApp;

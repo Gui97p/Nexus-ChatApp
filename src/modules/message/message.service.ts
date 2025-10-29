@@ -46,7 +46,7 @@ export function getMessages({ limit = 50, before, after, order = 'desc' }: GetMe
 
   return prisma.message.findMany({
     take: limit,
-    orderBy: { createdAt: order },
+    orderBy: { createdAt: order, id: order },
     where,
     include: {
       author,
@@ -83,7 +83,7 @@ export function getMessagesByAuthor(
   return prisma.message.findMany({
     where: { authorId: userId, ...where },
     take: limit,
-    orderBy: { createdAt: order },
+    orderBy: { createdAt: order, id: order },
     include: {
       author,
       repliedTo,
