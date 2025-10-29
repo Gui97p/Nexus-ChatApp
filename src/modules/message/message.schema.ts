@@ -6,13 +6,31 @@ const content = z
   .min(1, 'Content cannot be empty')
   .max(2000, 'Content cannot exceed 2000 characters');
 
+const pagination = z.object({
+  limit: z
+    .string()
+    .regex(/^\d+$/, 'Limit must be a number')
+    .transform((v) => parseInt(v, 10))
+    .optional(),
+
+  before: Schema.idOrDate.optional(),
+  after: Schema.idOrDate.optional(),
+
+  order: z.enum(['asc', 'desc']).optional(),
+});
+
 export const MessageSchemas = {
+  getAll: {
+    query: pagination,
+  },
+
   getById: {
     params: Schema.cuidParam,
   },
 
   getByAuthor: {
     params: Schema.cuidParam,
+    query: pagination,
   },
 
   create: {

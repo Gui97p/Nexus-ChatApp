@@ -13,13 +13,18 @@ import { MessageSchemas } from './message.schema';
 import {
   CreateMessageRequest,
   DeleteMessageRequest,
+  getAllMessages,
   getMessageByAuthorRequest,
   getMessageByIdRequest,
   UpdateMessageRequest,
 } from './message.types';
 
 export function registerMessageRoutes(app: FastifyInstance) {
-  app.get('/', { preHandler: authenticate }, getMessagesHandler);
+  app.get<getAllMessages>(
+    '/',
+    { preHandler: [authenticate, zodValidate(MessageSchemas.getAll)] },
+    getMessagesHandler,
+  );
   app.get<getMessageByAuthorRequest>(
     '/author/:id',
     { preHandler: [authenticate, zodValidate(MessageSchemas.getByAuthor)] },

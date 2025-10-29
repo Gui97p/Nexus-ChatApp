@@ -12,24 +12,16 @@ import { getSocketServer } from '../../utils/socket';
 import {
   CreateMessageRequest,
   DeleteMessageRequest,
+  getAllMessages,
   getMessageByAuthorRequest,
   getMessageByIdRequest,
   UpdateMessageRequest,
 } from './message.types';
 
-function parseToInt(value: string | undefined, defaultValue?: number): number | undefined {
-  if (!value) return defaultValue;
-  const parsed = parseInt(value);
-  return isNaN(parsed) ? defaultValue : parsed;
-}
+export async function getMessagesHandler(req: FastifyRequest<getAllMessages>, res: FastifyReply) {
+  const { limit, before, after, order } = req.query;
 
-export async function getMessagesHandler(req: FastifyRequest, res: FastifyReply) {
-  const { limit, offset } = req.query as { limit?: string; offset?: string };
-  const newlimit = parseToInt(limit);
-  const newOffset = parseToInt(offset);
-  console.log(newlimit, newOffset);
-
-  const messages = await getMessages(newlimit, newOffset);
+  const messages = await getMessages({ limit, before, after, order });
 
   return res.send({ message: messages });
 }
@@ -39,11 +31,9 @@ export async function getMessagesByAuthorHandler(
   res: FastifyReply,
 ) {
   const { id } = req.params;
-  const { limit, offset } = req.query as { limit?: string; offset?: string };
-  const newlimit = parseToInt(limit);
-  const newOffset = parseToInt(offset);
+  const { limit, before, after, order } = req.query;
 
-  const messages = await getMessagesByAuthor(id, newlimit, newOffset);
+  const messages = await getMessagesByAuthor(id, { limit, before, after, order });
 
   return res.send({ message: messages });
 }

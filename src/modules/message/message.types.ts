@@ -9,6 +9,7 @@ export type createMessageType = {
   authorId: string;
 };
 
+export type getAllMessages = InferRequest<typeof MessageSchemas.getAll>;
 export type getMessageByIdRequest = InferRequest<typeof MessageSchemas.getById>;
 export type getMessageByAuthorRequest = InferRequest<typeof MessageSchemas.getByAuthor>;
 export type CreateMessageRequest = InferRequest<typeof MessageSchemas.create>;

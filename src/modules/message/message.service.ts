@@ -15,11 +15,39 @@ const repliedTo = {
   },
 };
 
-export function getMessages(quantity?: number, offset?: number) {
+interface GetMessagesParams {
+  limit?: number;
+  before?: { type: 'id' | 'date'; value: string | Date };
+  after?: { type: 'id' | 'date'; value: string | Date };
+  order?: 'asc' | 'desc';
+}
+
+export function getMessages({ limit = 50, before, after, order = 'desc' }: GetMessagesParams) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const where: any = {};
+
+  if (before) {
+    if (before.type === 'id') {
+      where.id = { lt: before.value };
+    } else {
+      where.createdAt = { lt: before.value };
+    }
+  }
+
+  if (after) {
+    if (after.type === 'id') {
+      const existingId = where.id || {};
+      where.id = { gt: after.value, ...existingId };
+    } else {
+      const existingCreatedAt = where.createdAt || {};
+      where.createdAt = { gt: after.value, ...existingCreatedAt };
+    }
+  }
+
   return prisma.message.findMany({
-    take: quantity,
-    skip: offset,
-    orderBy: { createdAt: 'desc' },
+    take: limit,
+    orderBy: { createdAt: order },
+    where,
     include: {
       author,
       repliedTo,
@@ -27,12 +55,35 @@ export function getMessages(quantity?: number, offset?: number) {
   });
 }
 
-export function getMessagesByAuthor(userId: string, quantity?: number, offset?: number) {
+export function getMessagesByAuthor(
+  userId: string,
+  { limit = 50, before, after, order = 'desc' }: GetMessagesParams,
+) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const where: any = {};
+
+  if (before) {
+    if (before.type === 'id') {
+      where.id = { lt: before.value };
+    } else {
+      where.createdAt = { lt: before.value };
+    }
+  }
+
+  if (after) {
+    if (after.type === 'id') {
+      const existingId = where.id || {};
+      where.id = { gt: after.value, ...existingId };
+    } else {
+      const existingCreatedAt = where.createdAt || {};
+      where.createdAt = { gt: after.value, ...existingCreatedAt };
+    }
+  }
+
   return prisma.message.findMany({
-    where: { authorId: userId },
-    take: quantity,
-    skip: offset || 0,
-    orderBy: { createdAt: 'desc' },
+    where: { authorId: userId, ...where },
+    take: limit,
+    orderBy: { createdAt: order },
     include: {
       author,
       repliedTo,
