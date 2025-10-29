@@ -124,7 +124,7 @@ export const MessageDocs = {
   },
 
   delete: {
-    tags: ['Users'],
+    tags: ['Messages'],
     summary: 'Deletes a Message',
     description: 'Deletes a Message based on an Id.',
     security: [{ bearerAuth: [] }],
