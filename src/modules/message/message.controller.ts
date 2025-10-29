@@ -1,102 +1,144 @@
-import { FastifyReply, FastifyRequest } from "fastify";
-import { createMessage, deleteMessage, getMessageById, getMessages, getMessagesByAuthor, updateMessage } from "./message.service";
-import { CreateMessageInput, UpdateMessageInput } from "./message.schema";
-import { getSocketServer } from "../../utils/socket";
-import { createMessageType } from "./message.types";
+import { FastifyReply, FastifyRequest } from 'fastify';
+import {
+  createMessage,
+  deleteMessage,
+  getMessageById,
+  getMessages,
+  getMessagesByAuthor,
+  getMessagesByIds,
+  updateMessage,
+} from './message.service';
+import { getSocketServer } from '../../utils/socket';
+import {
+  CreateMessageRequest,
+  DeleteMessageRequest,
+  getMessageByAuthorRequest,
+  getMessageByIdRequest,
+  UpdateMessageRequest,
+} from './message.types';
 
 function parseToInt(value: string | undefined, defaultValue?: number): number | undefined {
-    if (!value) return defaultValue;
-    const parsed = parseInt(value);
-    return isNaN(parsed) ? defaultValue : parsed;
+  if (!value) return defaultValue;
+  const parsed = parseInt(value);
+  return isNaN(parsed) ? defaultValue : parsed;
 }
 
 export async function getMessagesHandler(req: FastifyRequest, res: FastifyReply) {
-    const { limit, offset } = req.query as { limit?: string; offset?: string };
-    const newlimit = parseToInt(limit);
-    const newOffset = parseToInt(offset);
-    console.log(newlimit, newOffset);
+  const { limit, offset } = req.query as { limit?: string; offset?: string };
+  const newlimit = parseToInt(limit);
+  const newOffset = parseToInt(offset);
+  console.log(newlimit, newOffset);
 
-    const messages = await getMessages(newlimit, newOffset);
+  const messages = await getMessages(newlimit, newOffset);
 
-    return res.send({ message: messages });
+  return res.send({ message: messages });
 }
 
-export async function getMessagesByAuthorHandler(req: FastifyRequest, res: FastifyReply) {
-    const { userId } = req.params as { userId: string };
-    const { limit, offset } = req.query as { limit?: string; offset?: string };
-    const newlimit = parseToInt(limit);
-    const newOffset = parseToInt(offset);
+export async function getMessagesByAuthorHandler(
+  req: FastifyRequest<getMessageByAuthorRequest>,
+  res: FastifyReply,
+) {
+  const { id } = req.params;
+  const { limit, offset } = req.query as { limit?: string; offset?: string };
+  const newlimit = parseToInt(limit);
+  const newOffset = parseToInt(offset);
 
-    const messages = await getMessagesByAuthor(userId, newlimit, newOffset);
+  const messages = await getMessagesByAuthor(id, newlimit, newOffset);
 
-    return res.send({ message: messages });
+  return res.send({ message: messages });
 }
 
-export async function getMessageHandler(req: FastifyRequest, res: FastifyReply) {
-    const { id } = req.params as { id: string };
-    
-    const message = await getMessageById(id);
+export async function getMessageHandler(
+  req: FastifyRequest<getMessageByIdRequest>,
+  res: FastifyReply,
+) {
+  const { id } = req.params;
 
-    return res.send({ message });
+  const message = await getMessageById(id);
+
+  if (!message) {
+    return res.status(404).send({ message: 'Message not found' });
+  }
+
+  return res.send({ message });
 }
 
-export async function createMessageHandler(req: FastifyRequest, res: FastifyReply) {
-    const body = req.body as CreateMessageInput & { authorId: string };
-    body.authorId = req.user.userId;
+export async function createMessageHandler(
+  req: FastifyRequest<CreateMessageRequest>,
+  res: FastifyReply,
+) {
+  const { replies = [], ...body } = req.body;
+  const authorId = req.user.userId;
 
-    const createData = { ...body } as createMessageType
-    createData.replies = []
-    body.replies?.forEach(id => createData.replies?.push({ id }))
+  const uniqueReplies = Array.from(new Set(replies));
 
-    const newMessage = await createMessage(createData);
+  const existingMessages = await getMessagesByIds(uniqueReplies);
+  const validReplyIds = existingMessages.map((m) => m.id);
+  const ignoredReplies = uniqueReplies.filter((id) => !validReplyIds.includes(id));
 
-    const server = getSocketServer()
-    server.to('channel:global').emit("message:new", newMessage);
+  if (uniqueReplies.length > 0 && validReplyIds.length === 0) {
+    return res.status(400).send({ message: 'No valid messages to reply to' });
+  }
 
-    return res.code(201).send({ message: newMessage });
+  const newMessage = await createMessage({
+    ...body,
+    authorId,
+    replies: validReplyIds.map((id) => ({ id })),
+  });
+
+  const server = getSocketServer();
+  server.to('channel:global').emit('message:new', newMessage);
+
+  return res.code(201).send({ message: newMessage, ignoredReplies });
 }
 
-export async function updateMessageHandler(req: FastifyRequest, res: FastifyReply) {
-    const { id } = req.params as { id: string };
-    const userId = req.user.userId;
-    const { content } = req.body as UpdateMessageInput;
+export async function updateMessageHandler(
+  req: FastifyRequest<UpdateMessageRequest>,
+  res: FastifyReply,
+) {
+  const { id } = req.params;
+  const userId = req.user.userId;
+  const { content } = req.body;
 
-    const message = await getMessageById(id);
+  const message = await getMessageById(id);
 
-    if (!message) {
-        return res.code(404).send({ message: "Message not found" });
-    }
+  if (!message) {
+    return res.code(404).send({ message: 'Message not found' });
+  }
 
-    if (userId !== message.authorId) {
-        return res.code(403).send({ message: "You must be the author of the message to update it" });
-    }
+  if (userId !== message.authorId) {
+    return res.code(403).send({ message: 'You must be the author of the message to update it' });
+  }
 
-    const updatedMessage = await updateMessage(id, content);
+  const updatedMessage = await updateMessage(id, content);
 
-    const server = getSocketServer()
-    server.to('channel:global').emit("message:updated", updatedMessage);
+  const server = getSocketServer();
+  server.to('channel:global').emit('message:updated', updatedMessage);
 
-    return res.send({ message: updatedMessage });
+  return res.send({ message: updatedMessage });
 }
 
-export async function deleteMessageHandler(req: FastifyRequest, res: FastifyReply) {
-    const { id } = req.params as { id: string };
-    const userId = req.user.userId;
+export async function deleteMessageHandler(
+  req: FastifyRequest<DeleteMessageRequest>,
+  res: FastifyReply,
+) {
+  const { id } = req.params;
+  const userId = req.user.userId;
 
-    const message = await getMessageById(id);
+  const message = await getMessageById(id);
 
-    if (!message) {
-        return res.code(404).send({ message: "Message not found" });
-    }
+  if (!message) {
+    return res.code(404).send({ message: 'Message not found' });
+  }
 
-    if (userId !== message.authorId) {
-        return res.code(403).send({ message: "You must be the author of the message to delete it" });
-    }
+  if (userId !== message.authorId) {
+    return res.code(403).send({ message: 'You must be the author of the message to delete it' });
+  }
 
-    await deleteMessage(id);
+  await deleteMessage(id);
 
-    const server = getSocketServer()
-    server.to('channel:global').emit("message:deleted", { id });
+  const server = getSocketServer();
+  server.to('channel:global').emit('message:deleted', { id });
 
-    return res.send({ message: "Message deleted successfully" });
+  return res.send({ message: 'Message deleted successfully' });
 }
