@@ -11,7 +11,6 @@ export type createMessageType = {
 
 export type getAllMessages = InferRequest<typeof MessageSchemas.getAll>;
 export type getMessageByIdRequest = InferRequest<typeof MessageSchemas.getById>;
-export type getMessageByAuthorRequest = InferRequest<typeof MessageSchemas.getByAuthor>;
 export type CreateMessageRequest = InferRequest<typeof MessageSchemas.create>;
 export type UpdateMessageRequest = InferRequest<typeof MessageSchemas.update>;
 export type DeleteMessageRequest = InferRequest<typeof MessageSchemas.delete>;

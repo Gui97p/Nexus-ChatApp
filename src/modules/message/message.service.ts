@@ -12,78 +12,66 @@ const author = {
 const repliedTo = {
   select: {
     id: true,
+    authorId: true,
   },
 };
 
 interface GetMessagesParams {
+  userId: string;
   limit?: number;
   before?: { type: 'id' | 'date'; value: string | Date };
   after?: { type: 'id' | 'date'; value: string | Date };
   order?: 'asc' | 'desc';
 }
 
-export function getMessages({ limit = 50, before, after, order = 'desc' }: GetMessagesParams) {
+export function getMessages({
+  userId,
+  limit = 50,
+  before,
+  after,
+  order = 'desc',
+}: GetMessagesParams) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const where: any = {};
+  const where: any = {
+    OR: [
+      { private: false },
+      {
+        AND: [
+          { private: true },
+          {
+            OR: [
+              { authorId: userId },
+              {
+                replies: {
+                  some: { authorId: userId },
+                },
+              },
+              {
+                repliedTo: {
+                  some: { authorId: userId },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
 
-  if (before) {
-    if (before.type === 'id') {
-      where.id = { lt: before.value };
-    } else {
-      where.createdAt = { lt: before.value };
-    }
-  }
+  where.id = {
+    lt: before?.type == 'id' ? before.value : undefined,
+    gt: after?.type == 'id' ? after.value : undefined,
+  };
 
-  if (after) {
-    if (after.type === 'id') {
-      const existingId = where.id || {};
-      where.id = { gt: after.value, ...existingId };
-    } else {
-      const existingCreatedAt = where.createdAt || {};
-      where.createdAt = { gt: after.value, ...existingCreatedAt };
-    }
-  }
+  where.createdAt = {
+    lt: before?.type == 'date' ? before.value : undefined,
+    gt: after?.type == 'date' ? after.value : undefined,
+  };
 
   return prisma.message.findMany({
     take: limit,
     orderBy: [{ createdAt: order }, { id: order }],
     where,
-    include: {
-      author,
-      repliedTo,
-    },
-  });
-}
-
-export function getMessagesByAuthor(
-  userId: string,
-  { limit = 50, before, after, order = 'desc' }: GetMessagesParams,
-) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const where: any = {};
-
-  if (before) {
-    if (before.type === 'id') {
-      where.id = { lt: before.value };
-    } else {
-      where.createdAt = { lt: before.value };
-    }
-  }
-
-  if (after) {
-    if (after.type === 'id') {
-      const existingId = where.id || {};
-      where.id = { gt: after.value, ...existingId };
-    } else {
-      const existingCreatedAt = where.createdAt || {};
-      where.createdAt = { gt: after.value, ...existingCreatedAt };
-    }
-  }
-
-  return prisma.message.findMany({
-    where: { authorId: userId, ...where },
-    take: limit,
-    orderBy: [{ createdAt: order }, { id: order }],
     include: {
       author,
       repliedTo,
@@ -107,6 +95,17 @@ export function getMessageById(id: string) {
     include: {
       author,
       repliedTo,
+    },
+  });
+}
+
+export function getSensitiveById(id: string) {
+  return prisma.message.findUnique({
+    where: { id },
+    include: {
+      author,
+      repliedTo,
+      replies: true,
     },
   });
 }

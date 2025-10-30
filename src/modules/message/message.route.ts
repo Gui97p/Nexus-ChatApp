@@ -3,7 +3,6 @@ import {
   createMessageHandler,
   deleteMessageHandler,
   getMessageHandler,
-  getMessagesByAuthorHandler,
   getMessagesHandler,
   updateMessageHandler,
 } from './message.controller';
@@ -14,7 +13,6 @@ import {
   CreateMessageRequest,
   DeleteMessageRequest,
   getAllMessages,
-  getMessageByAuthorRequest,
   getMessageByIdRequest,
   UpdateMessageRequest,
 } from './message.types';
@@ -25,14 +23,6 @@ export function registerMessageRoutes(app: FastifyInstance) {
     '/',
     { preHandler: [authenticate, zodValidate(MessageSchemas.getAll)], schema: MessageDocs.getAll },
     getMessagesHandler,
-  );
-  app.get<getMessageByAuthorRequest>(
-    '/author/:id',
-    {
-      preHandler: [authenticate, zodValidate(MessageSchemas.getByAuthor)],
-      schema: MessageDocs.getByAuthor,
-    },
-    getMessagesByAuthorHandler,
   );
   app.get<getMessageByIdRequest>(
     '/:id',

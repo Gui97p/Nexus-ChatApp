@@ -3,11 +3,12 @@ import { authHandler } from './auth.controller';
 import { zodValidate } from '../../utils/zodValidate';
 import { authSchemas } from './auth.schema';
 import { AuthDocs } from './auth.docs';
+import { LoginRequest } from './auth.types';
 
 export async function registerAuthRoutes(app: FastifyInstance) {
-  app.post(
+  app.post<LoginRequest>(
     '/',
     { preHandler: zodValidate(authSchemas.login), schema: AuthDocs.login },
-    authHandler,
+    (req, res) => authHandler(app, req, res),
   );
 }

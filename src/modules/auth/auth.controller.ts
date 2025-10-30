@@ -1,10 +1,13 @@
-import { FastifyReply, FastifyRequest } from 'fastify';
+import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { findSensitiveByEmail } from '../user/user.service';
 import bcrypt from 'bcrypt';
-import app from '../../app';
 import { LoginRequest } from './auth.types';
 
-export async function authHandler(req: FastifyRequest<LoginRequest>, res: FastifyReply) {
+export async function authHandler(
+  app: FastifyInstance,
+  req: FastifyRequest<LoginRequest>,
+  res: FastifyReply,
+) {
   const { email, password } = req.body;
 
   const user = await findSensitiveByEmail(email);

@@ -4,8 +4,8 @@ import {
   deleteMessage,
   getMessageById,
   getMessages,
-  getMessagesByAuthor,
   getMessagesByIds,
+  getSensitiveById,
   updateMessage,
 } from './message.service';
 import { getSocketServer } from '../../utils/socket';
@@ -13,27 +13,15 @@ import {
   CreateMessageRequest,
   DeleteMessageRequest,
   getAllMessages,
-  getMessageByAuthorRequest,
   getMessageByIdRequest,
   UpdateMessageRequest,
 } from './message.types';
 
 export async function getMessagesHandler(req: FastifyRequest<getAllMessages>, res: FastifyReply) {
+  const userId = req.user.userId;
   const { limit, before, after, order } = req.query;
 
-  const messages = await getMessages({ limit, before, after, order });
-
-  return res.send({ message: messages });
-}
-
-export async function getMessagesByAuthorHandler(
-  req: FastifyRequest<getMessageByAuthorRequest>,
-  res: FastifyReply,
-) {
-  const { id } = req.params;
-  const { limit, before, after, order } = req.query;
-
-  const messages = await getMessagesByAuthor(id, { limit, before, after, order });
+  const messages = await getMessages({ userId, limit, before, after, order });
 
   return res.send({ message: messages });
 }
@@ -42,12 +30,32 @@ export async function getMessageHandler(
   req: FastifyRequest<getMessageByIdRequest>,
   res: FastifyReply,
 ) {
+  const userId = req.user.userId;
   const { id } = req.params;
 
   const message = await getMessageById(id);
 
   if (!message) {
     return res.status(404).send({ message: 'Message not found' });
+  }
+
+  if (message.private) {
+    const sensitiveMessage = await getSensitiveById(message.id);
+
+    const repliedTo = (await getMessagesByIds(sensitiveMessage!.repliedTo.map((v) => v.id))).map(
+      (v) => v.authorId,
+    );
+    const replies = (await getMessagesByIds(sensitiveMessage!.replies.map((v) => v.id))).map(
+      (v) => v.authorId,
+    );
+    const condition =
+      sensitiveMessage!.authorId === userId ||
+      repliedTo.includes(userId) ||
+      replies.includes(userId);
+
+    if (!condition) {
+      return res.status(401).send({ message: 'Unauthorized' });
+    }
   }
 
   return res.send({ message });

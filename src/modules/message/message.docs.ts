@@ -30,36 +30,6 @@ export const MessageDocs = {
     },
   },
 
-  getByAuthor: {
-    tags: ['Messages'],
-    summary: 'Get all messages of an Author',
-    description: 'Returns paginated messages of an author with cursor or offset support.',
-    params: {
-      type: 'object',
-      properties: {
-        id: { type: 'string', description: 'User ID', example: 'cmhc8ydab0000qsblnb4nhk8a' },
-      },
-      required: ['id'],
-    },
-    querystring: {
-      type: 'object',
-      properties: {
-        limit: { type: 'number', example: 20 },
-        before: { type: 'string', example: '2025-10-29T15:00:00.000Z' },
-        after: { type: 'string', example: 'cmhcbfs0i0001qsebq6e0bw6a' },
-        order: { type: 'string', enum: ['asc', 'desc'], example: 'desc' },
-      },
-    },
-    response: {
-      200: {
-        type: 'object',
-        properties: {
-          message: { type: 'array', items: { $ref: 'Message#' } },
-        },
-      },
-    },
-  },
-
   getById: {
     tags: ['Messages'],
     summary: 'Get a message by an Id',

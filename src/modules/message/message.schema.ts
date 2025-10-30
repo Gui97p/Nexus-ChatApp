@@ -24,11 +24,6 @@ export const MessageSchemas = {
     params: Schema.cuidParam,
   },
 
-  getByAuthor: {
-    params: Schema.cuidParam,
-    query: pagination,
-  },
-
   create: {
     body: z
       .object({
