@@ -1,32 +1,36 @@
-const MessageId = {
-  type: 'object',
-  properties: {
-    id: { type: 'string', description: 'Message ID', example: 'cmhc8ydab0000qsblnb4nhk8a' },
-  },
-  required: ['id'],
-};
+import {
+  arrayElement,
+  boolElement,
+  numberElement,
+  objectElement,
+  reference,
+  security,
+  stringElement,
+} from '../../utils/docs';
+
+const MessageId = objectElement({
+  id: stringElement('cmhc8ydab0000qsblnb4nhk8a', { description: 'Message Id' }),
+});
+const NotFound = objectElement({
+  message: stringElement('Message not found'),
+});
 
 export const MessageDocs = {
   getAll: {
     tags: ['Messages'],
     summary: 'Get all messages',
     description: 'Returns paginated messages with cursor or offset support.',
-    querystring: {
-      type: 'object',
-      properties: {
-        limit: { type: 'number', example: 20 },
-        before: { type: 'string', example: '2025-10-29T15:00:00.000Z' },
-        after: { type: 'string', example: 'cmhcbfs0i0001qsebq6e0bw6a' },
-        order: { type: 'string', enum: ['asc', 'desc'], example: 'desc' },
-      },
-    },
+    security,
+    querystring: objectElement({
+      limit: numberElement(20),
+      before: stringElement('2025-10-29T15:00:00.000Z'),
+      after: stringElement('cmhcbfs0i0001qsebq6e0bw6a'),
+      order: stringElement('desc', { enum: ['asc', 'desc'] }),
+    }),
     response: {
-      200: {
-        type: 'object',
-        properties: {
-          message: { type: 'array', items: { $ref: 'Message#' } },
-        },
-      },
+      200: objectElement({
+        message: arrayElement(reference('Message')),
+      }),
     },
   },
 
@@ -34,14 +38,16 @@ export const MessageDocs = {
     tags: ['Messages'],
     summary: 'Get a message by an Id',
     description: "Returns a unique message based on it's Id",
+    security,
     params: MessageId,
     response: {
-      200: {
-        type: 'object',
-        properties: {
-          message: { type: 'object', $ref: 'Message#' },
-        },
-      },
+      200: objectElement({
+        message: objectElement(undefined, reference('Message')),
+      }),
+      401: objectElement({
+        message: stringElement('Unauthorized'),
+      }),
+      404: NotFound,
     },
   },
 
@@ -49,25 +55,23 @@ export const MessageDocs = {
     tags: ['Messages'],
     summary: 'Creates a new Message',
     description: 'Creates a new Message with all metadata',
-    body: {
-      type: 'object',
-      required: ['content'],
-      properties: {
-        content: { type: 'string', minLength: 1, maxLength: 2000, example: 'Hello world!' },
-        private: { type: 'boolean', default: false },
-        silent: { type: 'boolean', default: false },
-        replies: {
-          type: 'array',
-          items: { type: 'string', example: 'cmhcas3i00001qsblnb4nhk8o' },
-          maxItems: 5,
-        },
+    security,
+    body: objectElement(
+      {
+        content: stringElement('Hello world!', { minLength: 1, maxLength: 2000 }),
+        private: boolElement(undefined, { default: false }),
+        silent: boolElement(undefined, { default: false }),
+        replies: arrayElement(stringElement('cmhcas3i00001qsblnb4nhk8o'), { maxItems: 5 }),
       },
-    },
+      { required: ['content'] },
+    ),
     response: {
-      200: {
-        type: 'object',
-        $ref: 'Message#',
-      },
+      201: objectElement(undefined, reference('Message')),
+      400: objectElement({
+        message: stringElement('No valid messages to reply to', {
+          description: 'Occurs when some replies were passed but none of them were valid',
+        }),
+      }),
     },
   },
 
@@ -75,21 +79,19 @@ export const MessageDocs = {
     tags: ['Messages'],
     summary: 'Updates a Message',
     description: 'Updates a message content',
-    security: [{ bearerAuth: [] }],
+    security,
     params: MessageId,
-    body: {
-      type: 'object',
-      properties: {
-        content: { type: 'string', example: 'New Message' },
-      },
-    },
+    body: objectElement({
+      content: stringElement('New Message'),
+    }),
     response: {
-      200: {
-        type: 'object',
-        properties: {
-          message: { type: 'string', example: 'Message updated successfully' },
-        },
-      },
+      200: objectElement({
+        message: stringElement('Message updated successfully'),
+      }),
+      403: objectElement({
+        message: stringElement('You must be the author of the message to update it'),
+      }),
+      404: NotFound,
     },
   },
 
@@ -97,15 +99,16 @@ export const MessageDocs = {
     tags: ['Messages'],
     summary: 'Deletes a Message',
     description: 'Deletes a Message based on an Id.',
-    security: [{ bearerAuth: [] }],
+    security,
     params: MessageId,
     response: {
-      200: {
-        type: 'object',
-        properties: {
-          message: { type: 'string', example: 'Message deleted successfully' },
-        },
-      },
+      200: objectElement({
+        message: stringElement('Message deleted successfully'),
+      }),
+      403: objectElement({
+        message: stringElement('You must be the author of the message to delete it'),
+      }),
+      404: NotFound,
     },
   },
 };

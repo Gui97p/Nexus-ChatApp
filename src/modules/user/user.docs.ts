@@ -1,24 +1,23 @@
-const UserId = {
-  type: 'object',
-  properties: {
-    id: { type: 'string', description: 'User ID', example: 'cmhc8ydab0000qsblnb4nhk8a' },
+import { arrayElement, objectElement, reference, security, stringElement } from '../../utils/docs';
+
+const UserId = objectElement(
+  {
+    id: stringElement('cmhc8ydab0000qsblnb4nhk8a', { description: 'User Id' }),
   },
-  required: ['id'],
-};
+  { required: ['id'] },
+);
+const NotFound = objectElement({
+  message: stringElement('User not found'),
+});
 
 export const UserDocs = {
   getAll: {
     tags: ['Users'],
     summary: 'Get all users',
     description: 'Returns all users.',
-    security: [{ bearerAuth: [] }],
+    security,
     response: {
-      200: {
-        type: 'array',
-        items: {
-          $ref: 'User#',
-        },
-      },
+      200: arrayElement(reference('User')),
     },
   },
 
@@ -26,13 +25,11 @@ export const UserDocs = {
     tags: ['Users'],
     summary: 'Gets user by Id',
     description: 'Returns an user based on an Id.',
-    security: [{ bearerAuth: [] }],
+    security,
     params: UserId,
     response: {
-      200: {
-        type: 'object',
-        $ref: 'User#',
-      },
+      200: objectElement(undefined, reference('User')),
+      404: NotFound,
     },
   },
 
@@ -40,12 +37,10 @@ export const UserDocs = {
     tags: ['Users'],
     summary: 'Gets own user data',
     description: 'Returns own user based on Authorization token.',
-    security: [{ bearerAuth: [] }],
+    security,
     response: {
-      200: {
-        type: 'object',
-        $ref: 'User#',
-      },
+      200: objectElement(undefined, reference('User')),
+      404: NotFound,
     },
   },
 
@@ -53,20 +48,19 @@ export const UserDocs = {
     tags: ['Users'],
     summary: 'Registers a new User',
     description: 'Creates a new User',
-    body: {
-      type: 'object',
-      required: ['name', 'email', 'password'],
-      properties: {
-        name: { type: 'string', example: 'John' },
-        email: { type: 'string', example: 'example@email.com' },
-        password: { type: 'string', example: 'StrongPassword123' },
+    body: objectElement(
+      {
+        name: stringElement('Jordan'),
+        email: stringElement('example@email.com'),
+        password: stringElement('StrongPassword123'),
       },
-    },
+      { required: ['name', 'email', 'password'] },
+    ),
     response: {
-      200: {
-        type: 'object',
-        $ref: 'User#',
-      },
+      200: objectElement(undefined, reference('User')),
+      409: objectElement({
+        message: stringElement('Email/Username already in use'),
+      }),
     },
   },
 
@@ -74,28 +68,27 @@ export const UserDocs = {
     tags: ['Users'],
     summary: 'Updates an User',
     description: 'Updates own User based on an Id',
-    security: [{ bearerAuth: [] }],
+    security,
     params: UserId,
-    body: {
-      type: 'object',
-      properties: {
-        name: { type: 'string', example: 'John' },
-        email: { type: 'string', example: 'example@email.com' },
-        displayName: { type: 'string', example: 'johnzinhu' },
-        avatar: {
-          type: 'string',
-          example:
-            'https://tenor.com/view/monster-versus-vs-alien-monster-vs-alien-gif-16037253809360562033',
-        },
-      },
-    },
+    body: objectElement({
+      name: stringElement('Jordan'),
+      email: stringElement('example@email.com'),
+      displayName: stringElement('not Jordan :)'),
+      avatar: stringElement(
+        'https://tenor.com/view/monster-versus-vs-alien-monster-vs-alien-gif-16037253809360562033',
+      ),
+    }),
     response: {
-      200: {
-        type: 'object',
-        properties: {
-          message: { type: 'string', example: 'User updated successfully' },
-        },
-      },
+      200: objectElement({
+        message: stringElement('User updated successfully'),
+      }),
+      403: objectElement({
+        message: stringElement('You can only update your own account'),
+      }),
+      404: NotFound,
+      409: objectElement({
+        message: stringElement('Email/Username already in use'),
+      }),
     },
   },
 
@@ -103,15 +96,16 @@ export const UserDocs = {
     tags: ['Users'],
     summary: 'Deletes an User',
     description: 'Deletes own User based on an Id.',
-    security: [{ bearerAuth: [] }],
+    security,
     params: UserId,
     response: {
-      200: {
-        type: 'object',
-        properties: {
-          message: { type: 'string', example: 'User deleted successfully' },
-        },
-      },
+      200: objectElement({
+        message: stringElement('User deleted successfully'),
+      }),
+      403: objectElement({
+        message: stringElement('You can only delete your own account'),
+      }),
+      404: NotFound,
     },
   },
 };

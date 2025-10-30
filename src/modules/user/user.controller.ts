@@ -69,6 +69,19 @@ export async function updateUserHandler(req: FastifyRequest<UpdateUserRequest>, 
     return res.status(403).send({ message: 'You can only update your own account' });
   }
 
+  if (body.email) {
+    const existingUser = await findUserByEmail(body.email);
+    if (existingUser) {
+      return res.status(409).send({ message: 'Email already in use' });
+    }
+  }
+  if (body.name) {
+    const existingUser = await findUserByName(body.name);
+    if (existingUser) {
+      return res.status(409).send({ message: 'Username already in use' });
+    }
+  }
+
   try {
     const updatedUser = await updateUser(id, body);
     return res.send(updatedUser);
