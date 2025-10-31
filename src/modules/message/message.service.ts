@@ -16,6 +16,14 @@ const repliedTo = {
   },
 };
 
+const attachments = {
+  omit: {
+    id: true,
+    messageId: true,
+    createdAt: true,
+  },
+};
+
 interface GetMessagesParams {
   userId: string;
   limit?: number;
@@ -75,6 +83,7 @@ export function getMessages({
     include: {
       author,
       repliedTo,
+      attachments,
     },
   });
 }
@@ -95,6 +104,7 @@ export function getMessageById(id: string) {
     include: {
       author,
       repliedTo,
+      attachments,
     },
   });
 }
@@ -105,6 +115,7 @@ export function getSensitiveById(id: string) {
     include: {
       author,
       repliedTo,
+      attachments,
       replies: true,
     },
   });
@@ -118,6 +129,9 @@ export function createMessage(data: createMessageType) {
       private: data.private,
       silent: data.silent,
 
+      attachments: {
+        connect: data.attachments?.map((id) => ({ id })),
+      },
       repliedTo: {
         connect: data.replies,
       },
@@ -125,6 +139,7 @@ export function createMessage(data: createMessageType) {
     include: {
       author,
       repliedTo,
+      attachments,
     },
   });
 }

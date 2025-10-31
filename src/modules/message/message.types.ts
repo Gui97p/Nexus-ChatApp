@@ -6,6 +6,7 @@ export type createMessageType = {
   silent?: boolean;
   private?: boolean;
   replies?: { id: string }[];
+  attachments?: string[];
   authorId: string;
 };
 

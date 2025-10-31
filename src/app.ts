@@ -1,6 +1,7 @@
 import Fastify from 'fastify';
 import fjwt from 'fastify-jwt';
 import cors from '@fastify/cors';
+import multipart from '@fastify/multipart';
 import { Server } from 'socket.io';
 import { registerUserRoutes } from './modules/user/user.route';
 import { registerAuthRoutes } from './modules/auth/auth.route';
@@ -8,6 +9,7 @@ import { registerMessageRoutes } from './modules/message/message.route';
 import { setupWebSocket } from './websockets';
 import { setupSwagger } from './plugins/swagger';
 import { registerSchemas } from './plugins/registerSchemas';
+import { registerFileRoutes } from './modules/file/file.route';
 
 declare module 'fastify-jwt' {
   interface FastifyJWT {
@@ -43,6 +45,12 @@ async function buildApp() {
     secret: process.env.JWT_SECRET || 'defaultsecret',
     sign: { expiresIn: '1y' },
   });
+  app.register(multipart, {
+    limits: {
+      fileSize: 1024 * 1024 * 10,
+      files: 10,
+    },
+  });
 
   await registerSchemas(app);
   await setupSwagger(app);
@@ -51,6 +59,7 @@ async function buildApp() {
   app.register(registerUserRoutes, { prefix: '/api/users' });
   app.register(registerAuthRoutes, { prefix: '/api/auth' });
   app.register(registerMessageRoutes, { prefix: '/api/messages' });
+  app.register(registerFileRoutes, { prefix: '/api/files' });
 
   return app;
 }

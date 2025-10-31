@@ -29,6 +29,7 @@ export const MessageSchemas = {
       .object({
         content,
         replies: z.array(z.string().cuid()).max(5).optional(),
+        attachments: z.array(z.string().cuid()).max(10).optional(),
         silent: z.boolean().optional(),
         private: z.boolean().optional(),
       })
