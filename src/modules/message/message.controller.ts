@@ -23,7 +23,7 @@ export async function getMessagesHandler(req: FastifyRequest<getAllMessages>, re
 
   const messages = await getMessages({ userId, limit, before, after, order });
 
-  return res.send({ message: messages });
+  return res.send({ data: messages });
 }
 
 export async function getMessageHandler(
@@ -58,7 +58,7 @@ export async function getMessageHandler(
     }
   }
 
-  return res.send({ message });
+  return res.send({ data: message });
 }
 
 export async function createMessageHandler(
@@ -87,7 +87,7 @@ export async function createMessageHandler(
   const server = getSocketServer();
   server.to('channel:global').emit('message:new', newMessage);
 
-  return res.code(201).send({ message: newMessage, ignoredReplies });
+  return res.code(201).send({ data: newMessage, ignoredReplies });
 }
 
 export async function updateMessageHandler(
@@ -113,7 +113,7 @@ export async function updateMessageHandler(
   const server = getSocketServer();
   server.to('channel:global').emit('message:updated', updatedMessage);
 
-  return res.send({ message: updatedMessage });
+  return res.send({ message: 'Message updated successfully' });
 }
 
 export async function deleteMessageHandler(

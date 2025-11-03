@@ -49,4 +49,21 @@ export async function registerSchemas(app: FastifyInstance) {
       updatedAt: { type: 'string', format: 'date-time' },
     },
   });
+
+  app.addSchema({
+    $id: 'Attachment',
+    type: 'object',
+    properties: {
+      id: { type: 'string', example: 'cmhcas3i00001qsblnb4nhk8o' },
+      filename: { type: 'string', example: 'Captura_de_tela_2025-09-21_015301.png' },
+      title: { type: 'string', example: 'Captura de tela 2025-09-21 015301' },
+      url: {
+        type: 'string',
+        example:
+          'https://cdn.discordapp.com/attachments/1361805363590070352/1433877162578149789/Captura_de_tela_2025-09-21_015301.png?ex=690649ab&is=6904f82b&hm=791d127616ab576b2ba1bc71ac742c9d16562fc155ff815fb9f8511ea5c36fc9&',
+      },
+      mimeType: { type: 'string', example: 'image/png' },
+      size: { type: 'number', example: 160213 },
+    },
+  });
 }

@@ -24,6 +24,13 @@ export async function uploadFiles(files: any): Promise<WebhookResponse[]> {
   return response.data && response.data.attachments ? response.data.attachments : Promise.reject();
 }
 
+export function findFileById(id: string) {
+  return prisma.attachment.findUnique({
+    where: { id },
+    omit: { messageId: true },
+  });
+}
+
 export function findFilesByURLs(URLs: string[]) {
   return prisma.attachment.findMany({
     where: { url: { in: URLs } },

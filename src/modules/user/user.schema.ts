@@ -35,7 +35,7 @@ export const UserSchemas = {
         email: stringCheck('Email').email({
           message: 'Invalid email address',
         }),
-        avatar: stringCheck('Avatar').url(),
+        avatar: stringCheck('Avatar').cuid(),
       })
       .partial(),
   },

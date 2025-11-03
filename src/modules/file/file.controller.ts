@@ -16,7 +16,7 @@ export async function createFilesHandler(req: FastifyRequest, res: FastifyReply)
     await createFiles(uploads);
     const attachments = await findFilesByURLs(uploads.map((f) => f.url));
 
-    return res.send({ attachments });
+    return res.status(201).send({ attachments });
   } catch (err) {
     console.log(err);
     return res.status(500).send({ message: 'Error on uploading files' });

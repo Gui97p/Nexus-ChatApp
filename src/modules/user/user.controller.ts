@@ -14,9 +14,17 @@ import {
   UpdateUserRequest,
   DeleteUserRequest,
 } from './user.types';
+import { findFileById } from '../file/file.service';
 
-export async function getUsersHandler() {
-  return await findUsers();
+export async function getUsersHandler(req: FastifyRequest, res: FastifyReply) {
+  const users = await findUsers();
+
+  for (const user of users) {
+    if (!user.avatar) continue;
+    user.avatar = (await findFileById(user.avatar))?.url || null;
+  }
+
+  return res.send({ data: users });
 }
 
 export async function getMeHandler(req: FastifyRequest, res: FastifyReply) {
@@ -28,7 +36,11 @@ export async function getMeHandler(req: FastifyRequest, res: FastifyReply) {
     return res.status(404).send({ message: 'User not found' });
   }
 
-  return res.send(user);
+  if (user.avatar) {
+    user.avatar = (await findFileById(user.avatar))?.url || null;
+  }
+
+  return res.send({ data: user });
 }
 
 export async function getUserHandler(req: FastifyRequest<GetUserByIdRequest>, res: FastifyReply) {
@@ -40,7 +52,11 @@ export async function getUserHandler(req: FastifyRequest<GetUserByIdRequest>, re
     return res.status(404).send({ message: 'User not found' });
   }
 
-  return res.send(user);
+  if (user.avatar) {
+    user.avatar = (await findFileById(user.avatar))?.url || null;
+  }
+
+  return res.send({ data: user });
 }
 
 export async function createUserHandler(req: FastifyRequest<CreateUserRequest>, res: FastifyReply) {
@@ -57,7 +73,7 @@ export async function createUserHandler(req: FastifyRequest<CreateUserRequest>, 
 
   const user = await createUser(body);
 
-  return res.status(201).send(user);
+  return res.status(201).send({ data: user });
 }
 
 export async function updateUserHandler(req: FastifyRequest<UpdateUserRequest>, res: FastifyReply) {
@@ -83,8 +99,8 @@ export async function updateUserHandler(req: FastifyRequest<UpdateUserRequest>, 
   }
 
   try {
-    const updatedUser = await updateUser(id, body);
-    return res.send(updatedUser);
+    await updateUser(id, body);
+    return res.send({ message: 'User updated successfully' });
   } catch {
     return res.status(404).send({ message: 'User not found' });
   }

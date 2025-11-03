@@ -61,6 +61,7 @@ export const MessageDocs = {
         content: stringElement('Hello world!', { minLength: 1, maxLength: 2000 }),
         private: boolElement(undefined, { default: false }),
         silent: boolElement(undefined, { default: false }),
+        attachments: arrayElement(stringElement('cmhcas3i00001qsblnb4nhk8o'), { maxItems: 10 }),
         replies: arrayElement(stringElement('cmhcas3i00001qsblnb4nhk8o'), { maxItems: 5 }),
       },
       { required: ['content'] },

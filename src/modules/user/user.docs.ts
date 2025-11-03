@@ -17,7 +17,9 @@ export const UserDocs = {
     description: 'Returns all users.',
     security,
     response: {
-      200: arrayElement(reference('User')),
+      200: objectElement({
+        data: arrayElement(reference('User')),
+      }),
     },
   },
 
@@ -28,7 +30,9 @@ export const UserDocs = {
     security,
     params: UserId,
     response: {
-      200: objectElement(undefined, reference('User')),
+      200: objectElement({
+        data: reference('User'),
+      }),
       404: NotFound,
     },
   },
@@ -74,9 +78,7 @@ export const UserDocs = {
       name: stringElement('Jordan'),
       email: stringElement('example@email.com'),
       displayName: stringElement('not Jordan :)'),
-      avatar: stringElement(
-        'https://tenor.com/view/monster-versus-vs-alien-monster-vs-alien-gif-16037253809360562033',
-      ),
+      avatar: stringElement('cmhcas3i00001qsblnb4nhk8o'),
     }),
     response: {
       200: objectElement({
