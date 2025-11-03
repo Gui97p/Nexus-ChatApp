@@ -2,6 +2,7 @@ import Fastify from 'fastify';
 import fjwt from 'fastify-jwt';
 import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
+import ratelimit from '@fastify/rate-limit';
 import { Server } from 'socket.io';
 import { registerUserRoutes } from './modules/user/user.route';
 import { registerAuthRoutes } from './modules/auth/auth.route';
@@ -50,6 +51,16 @@ async function buildApp() {
       fileSize: 1024 * 1024 * 10,
       files: 10,
     },
+  });
+  app.register(ratelimit, {
+    global: false,
+    max: 300,
+    timeWindow: '5 minutes',
+    errorResponseBuilder: (req, context) => ({
+      error: 'RateLimitExceeded',
+      message: `Try again in ${Math.ceil(context.ttl / 1000)} seconds`,
+      retryAfter: context.ttl,
+    }),
   });
 
   await registerSchemas(app);

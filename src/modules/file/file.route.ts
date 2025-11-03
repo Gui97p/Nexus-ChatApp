@@ -3,5 +3,17 @@ import { createFilesHandler } from './file.controller';
 import { fileDocs } from './file.docs';
 
 export function registerFileRoutes(app: FastifyInstance) {
-  app.post('/', { schema: fileDocs.create }, createFilesHandler);
+  app.post(
+    '/',
+    {
+      schema: fileDocs.create,
+      config: {
+        rateLimit: {
+          max: 5,
+          timeWindow: '1 minute',
+        },
+      },
+    },
+    createFilesHandler,
+  );
 }
