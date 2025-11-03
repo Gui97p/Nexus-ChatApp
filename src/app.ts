@@ -1,4 +1,4 @@
-import Fastify from 'fastify';
+import Fastify, { FastifyReply, FastifyRequest } from 'fastify';
 import fjwt from 'fastify-jwt';
 import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
@@ -27,7 +27,9 @@ declare module 'fastify' {
 
 async function buildApp() {
   const app = Fastify({
-    logger: true,
+    logger: {
+      level: 'info',
+    },
     ajv: {
       customOptions: {
         strict: false,
@@ -52,7 +54,7 @@ async function buildApp() {
       files: 10,
     },
   });
-  app.register(ratelimit, {
+  await app.register(ratelimit, {
     global: false,
     max: 300,
     timeWindow: '5 minutes',
@@ -61,6 +63,23 @@ async function buildApp() {
       message: `Try again in ${Math.ceil(context.ttl / 1000)} seconds`,
       retryAfter: context.ttl,
     }),
+  });
+
+  app.setNotFoundHandler(
+    {
+      preHandler: app.rateLimit({
+        max: 4,
+        timeWindow: 500,
+      }),
+    },
+    (req: FastifyRequest, res: FastifyReply) => {
+      res.status(404).send({ message: `Route ${req.method} ${req.url} not found` });
+    },
+  );
+
+  app.setErrorHandler((error, req: FastifyRequest, res: FastifyReply) => {
+    req.log.error(error.stack);
+    res.status(500).send({ message: 'Internal server error' });
   });
 
   await registerSchemas(app);

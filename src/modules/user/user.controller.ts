@@ -101,7 +101,8 @@ export async function updateUserHandler(req: FastifyRequest<UpdateUserRequest>, 
   try {
     await updateUser(id, body);
     return res.send({ message: 'User updated successfully' });
-  } catch {
+  } catch (err) {
+    req.log.info(err);
     return res.status(404).send({ message: 'User not found' });
   }
 }
@@ -117,7 +118,8 @@ export async function deleteUserHandler(req: FastifyRequest<DeleteUserRequest>, 
   try {
     await deleteUser(id);
     return res.status(200).send({ message: 'User deleted successfully' });
-  } catch {
+  } catch (err) {
+    req.log.info(err);
     return res.status(404).send({ message: 'User not found' });
   }
 }
