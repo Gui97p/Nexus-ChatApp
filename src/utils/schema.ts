@@ -21,6 +21,12 @@ const Schemas = {
         return { type: 'date' as const, value: new Date(value) };
       }
     }),
+  stringCheck: (name: string) => {
+    return z.string({
+      required_error: `${name} is required`,
+      invalid_type_error: `${name} must be a string`,
+    });
+  },
 };
 
 export default Schemas;

@@ -9,7 +9,7 @@
     "start": "node dist/index.js",
     "prisma:generate": "node -r dotenv/config ./node_modules/.bin/prisma generate",
     "prisma:studio": "docker compose exec app npx prisma studio",
-    "migrate:dev": "dotenv -e .env -- prisma migrate dev",
+    "migrate:dev": "dotenv -e .env.local -- prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy",
     "migrate:reset": "prisma migrate reset",
     "seed": "ts-node prisma/seed.ts",

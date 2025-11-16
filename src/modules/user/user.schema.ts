@@ -1,13 +1,6 @@
 import { z } from 'zod';
 import Schemas from '../../utils/schema';
 
-function stringCheck(name: string) {
-  return z.string({
-    required_error: `${name} is required`,
-    invalid_type_error: `${name} must be a string`,
-  });
-}
-
 export const UserSchemas = {
   getById: {
     params: Schemas.cuidParam,
@@ -15,12 +8,12 @@ export const UserSchemas = {
 
   create: {
     body: z.object({
-      name: stringCheck('Name').min(3).max(64),
-      email: stringCheck('Email').email({
+      name: Schemas.stringCheck('Name').min(3).max(64),
+      email: Schemas.stringCheck('Email').email({
         message: 'Invalid email address',
       }),
       password: z
-        .string(stringCheck('Password'))
+        .string(Schemas.stringCheck('Password'))
         .min(8, 'Password must have 8 or more letters')
         .max(128, 'Password must have 128 or less letters'),
     }),
@@ -30,12 +23,12 @@ export const UserSchemas = {
     params: Schemas.cuidParam,
     body: z
       .object({
-        name: stringCheck('Name').min(3).max(16),
-        displayName: stringCheck('Display Name').min(1).max(32),
-        email: stringCheck('Email').email({
+        name: Schemas.stringCheck('Name').min(3).max(16),
+        displayName: Schemas.stringCheck('Display Name').min(1).max(32),
+        email: Schemas.stringCheck('Email').email({
           message: 'Invalid email address',
         }),
-        avatar: stringCheck('Avatar').cuid(),
+        avatar: Schemas.stringCheck('Avatar').cuid(),
       })
       .partial(),
   },
