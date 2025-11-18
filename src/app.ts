@@ -12,6 +12,7 @@ import { setupSwagger } from './plugins/swagger';
 import { registerSchemas } from './plugins/registerSchemas';
 import { registerFileRoutes } from './modules/file/file.route';
 import { registerServerRoutes } from './modules/server/server.route';
+import { registerChannelRoutes } from './modules/channel/channel.route';
 
 declare module 'fastify-jwt' {
   interface FastifyJWT {
@@ -90,6 +91,7 @@ async function buildApp() {
   app.register(registerUserRoutes, { prefix: '/api/users' });
   app.register(registerAuthRoutes, { prefix: '/api/auth' });
   app.register(registerServerRoutes, { prefix: '/api/servers' });
+  app.register(registerChannelRoutes, { prefix: '/api/channels' });
   app.register(registerMessageRoutes, { prefix: '/api/messages' });
   app.register(registerFileRoutes, { prefix: '/api/files' });
 

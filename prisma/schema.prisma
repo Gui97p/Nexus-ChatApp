@@ -27,6 +27,7 @@ model User {
   messages  Message[] @relation("AuthorMessages")
   servers   ServerMember[]  @relation("MembersOfServer")
   channels  ChannelMember[]
+  activeChannels Channel[] @relation("ActiveChannels")
 }
 
 model Message {
@@ -39,7 +40,7 @@ model Message {
   channelId String
 
   author    User     @relation("AuthorMessages", fields: [authorId], references: [id])
-  channel   Channel  @relation("ChannelMessages", fields: [channelId], references: [id])
+  channel   Channel  @relation("ChannelMessages", fields: [channelId], references: [id], onDelete: Cascade)
 
   attachments Attachment[] @relation("MessageAttachments")
 
@@ -86,7 +87,7 @@ model ServerMember {
   avatar      String?
   aboutMe     String?
 
-  server     Server @relation("ServerMembers", fields: [serverId], references: [id])
+  server     Server @relation("ServerMembers", fields: [serverId], references: [id], onDelete: Cascade)
   member     User   @relation("MembersOfServer", fields: [memberId], references: [id])
 
   joinedAt  DateTime @default(now())
@@ -97,8 +98,11 @@ model Channel {
   name      String?
   type      ChannelType
   
+  icon      String?
+  ownerId   String?
+
   serverId  String?
-  server    Server?    @relation("ServerChannel", fields: [serverId], references: [id])
+  server    Server?    @relation("ServerChannel", fields: [serverId], references: [id], onDelete: Cascade)
 
   parentId  String?
   parent    Channel?  @relation("ChannelCategory", fields: [parentId], references: [id])
@@ -106,6 +110,7 @@ model Channel {
 
   messages  Message[] @relation("ChannelMessages")
   recipients ChannelMember[]
+  activeUsers User[] @relation("ActiveChannels")
 }
 
 model ChannelMember {
@@ -113,7 +118,7 @@ model ChannelMember {
   channelId String
   userId    String
 
-  channel   Channel  @relation(fields: [channelId], references: [id])
+  channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id])
 }
 

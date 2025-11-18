@@ -87,9 +87,9 @@ export async function updateServerHandler(
     return res.status(404).send({ message: 'Server not found' });
   }
 
-  await updateServer(id, body);
+  const updatedServer = await updateServer(id, body);
 
-  return res.send({ data: 'Server updated successfully' });
+  return res.send({ data: updatedServer });
 }
 
 export async function deleteServerHandler(
@@ -212,9 +212,9 @@ export async function updateServerMemberHandler(
     return res.status(404).send({ message: 'Member not found in server' });
   }
 
-  await updateServerMember(serverId, memberId, body);
+  const updatedServerMember = await updateServerMember(serverId, memberId, body);
 
-  return res.send({ data: 'Server member updated successfully' });
+  return res.send({ data: updatedServerMember });
 }
 
 export async function deleteServerMemberHandler(

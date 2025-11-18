@@ -1,6 +1,4 @@
 import prisma from '../../utils/prisma';
-import { createServerChannel } from '../channel/channel.service';
-import { CreateServerMember } from '../serverMember/serverMember.service';
 import { CreateServerRequest, UpdateServerRequest } from './server.types';
 
 export function findServers() {
@@ -24,22 +22,23 @@ export function findServerChannels(id: string) {
 
 export async function createServer(data: CreateServerRequest['Body'] & { ownerId: string }) {
   const server = await prisma.server.create({
-    data,
+    data: {
+      ...data,
+      channels: {
+        createMany: {
+          data: [
+            { name: 'GENERAL', type: 'CATEGORY' },
+            { name: 'general', type: 'TEXT' },
+          ],
+        },
+      },
+      members: {
+        create: {
+          memberId: data.ownerId,
+        },
+      },
+    },
   });
-
-  const category = await createServerChannel({
-    name: 'GENERAL',
-    type: 'CATEGORY',
-    serverId: server.id,
-  });
-  await createServerChannel({
-    name: 'general',
-    type: 'TEXT',
-    serverId: server.id,
-    parentId: category.id,
-  });
-
-  await CreateServerMember(server.id, server.ownerId);
 
   return prisma.server.findUnique({
     where: { id: server.id },

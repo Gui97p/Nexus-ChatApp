@@ -99,8 +99,8 @@ export async function updateUserHandler(req: FastifyRequest<UpdateUserRequest>, 
   }
 
   try {
-    await updateUser(id, body);
-    return res.send({ message: 'User updated successfully' });
+    const updatedUser = await updateUser(id, body);
+    return res.send({ message: updatedUser });
   } catch (err) {
     req.log.info(err);
     return res.status(404).send({ message: 'User not found' });
