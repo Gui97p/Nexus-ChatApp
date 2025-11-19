@@ -4,9 +4,11 @@ import {
   CreateChannelMembersRequest,
   CreateChannelRequest,
   CreateGroupRequest,
+  CreateMessageRequest,
   DeactivateChannelRequest,
   DeleteChannelByIdRequest,
   DeleteChannelMemberRequest,
+  getAllMessages,
   GetChannelByIdRequest,
   UpdateChannelByIdRequest,
 } from './channel.types';
@@ -27,6 +29,27 @@ import {
   getChannelMember,
 } from '../channelMember/channelMember.service';
 import { findServerById } from '../server/server.service';
+import { createMessage, getMessages, getMessagesByIds } from '../message/message.service';
+import { getSocketServer } from '../../utils/socket';
+import { findServerMemberByMemberId } from '../serverMember/serverMember.service';
+
+async function checkUserInChannel(channelId: string, userId: string) {
+  const channel = await getChannelById(channelId);
+  if (!channel) {
+    return false;
+  }
+
+  if (channel.type === 'DM' || channel.type === 'GROUP_DM') {
+    return channel.recipients.map((r) => r.userId).includes(userId);
+  } else {
+    const server = await findServerById(channel.serverId!);
+    if (!server) {
+      return false;
+    }
+    const member = await findServerMemberByMemberId(server.id, userId);
+    return !!member;
+  }
+}
 
 export async function createChannelHandler(
   req: FastifyRequest<CreateChannelRequest>,
@@ -242,7 +265,7 @@ export async function activateChannelHandler(
     return res.status(404).send({ message: 'Channel not found' });
   }
 
-  if (channel.recipients.map((r) => r.userId).includes(req.user.userId) === false) {
+  if (channel.recipients.map((r) => r.userId).includes(userId) === false) {
     return res.status(403).send({ message: 'Unauthorized' });
   }
 
@@ -268,4 +291,73 @@ export async function deactivateChannelHandler(
 
   await removeActiveChannel(userId, channelId);
   return res.status(200).send({ data: 'Channel deactivated successfully' });
+}
+
+export async function getMessagesHandler(req: FastifyRequest<getAllMessages>, res: FastifyReply) {
+  const userId = req.user.userId;
+  const { limit, before, after, order } = req.query;
+  const channelId = req.params.id;
+
+  const channel = await getChannelById(channelId);
+  if (!channel) {
+    return res.status(404).send({ message: 'Channel not found' });
+  }
+
+  if (!(await checkUserInChannel(channelId, userId))) {
+    return res.status(403).send({ message: 'Unauthorized' });
+  }
+
+  const messages = await getMessages({ channelId, userId, limit, before, after, order });
+
+  return res.send({ data: messages });
+}
+
+export async function createMessageHandler(
+  req: FastifyRequest<CreateMessageRequest>,
+  res: FastifyReply,
+) {
+  const { replies = [], ...body } = req.body;
+  const authorId = req.user.userId;
+  const channelId = req.params.id;
+
+  const channel = await getChannelById(channelId);
+  if (!channel) {
+    return res.status(404).send({ message: 'Channel not found' });
+  }
+
+  if (!(await checkUserInChannel(channelId, authorId))) {
+    return res.status(403).send({ message: 'Unauthorized' });
+  }
+
+  const uniqueReplies = Array.from(new Set(replies));
+
+  const existingMessages = await getMessagesByIds(uniqueReplies);
+  const validReplyIds = existingMessages.map((m) => m.id);
+  const ignoredReplies = uniqueReplies.filter((id) => !validReplyIds.includes(id));
+
+  existingMessages.forEach((msg) => {
+    if (ignoredReplies.includes(msg.id)) {
+      return;
+    }
+    if (msg.channelId !== channelId) {
+      validReplyIds.splice(validReplyIds.indexOf(msg.id), 1);
+      ignoredReplies.push(msg.id);
+    }
+  });
+
+  if (uniqueReplies.length > 0 && validReplyIds.length === 0) {
+    return res.status(400).send({ message: 'No valid messages to reply to' });
+  }
+
+  const newMessage = await createMessage({
+    ...body,
+    authorId,
+    channelId,
+    replies: validReplyIds,
+  });
+
+  const server = getSocketServer();
+  server.to('channel:global').emit('message:new', newMessage);
+
+  return res.code(201).send({ data: newMessage, ignoredReplies });
 }

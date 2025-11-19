@@ -5,13 +5,12 @@ export type createMessageType = {
   content: string;
   silent?: boolean;
   private?: boolean;
-  replies?: { id: string }[];
+  replies?: string[];
   attachments?: string[];
   authorId: string;
+  channelId: string;
 };
 
-export type getAllMessages = InferRequest<typeof MessageSchemas.getAll>;
 export type getMessageByIdRequest = InferRequest<typeof MessageSchemas.getById>;
-export type CreateMessageRequest = InferRequest<typeof MessageSchemas.create>;
 export type UpdateMessageRequest = InferRequest<typeof MessageSchemas.update>;
 export type DeleteMessageRequest = InferRequest<typeof MessageSchemas.delete>;

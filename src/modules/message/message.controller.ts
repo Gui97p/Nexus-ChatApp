@@ -1,30 +1,13 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import {
-  createMessage,
   deleteMessage,
   getMessageById,
-  getMessages,
   getMessagesByIds,
   getSensitiveById,
   updateMessage,
 } from './message.service';
 import { getSocketServer } from '../../utils/socket';
-import {
-  CreateMessageRequest,
-  DeleteMessageRequest,
-  getAllMessages,
-  getMessageByIdRequest,
-  UpdateMessageRequest,
-} from './message.types';
-
-export async function getMessagesHandler(req: FastifyRequest<getAllMessages>, res: FastifyReply) {
-  const userId = req.user.userId;
-  const { limit, before, after, order } = req.query;
-
-  const messages = await getMessages({ userId, limit, before, after, order });
-
-  return res.send({ data: messages });
-}
+import { DeleteMessageRequest, getMessageByIdRequest, UpdateMessageRequest } from './message.types';
 
 export async function getMessageHandler(
   req: FastifyRequest<getMessageByIdRequest>,
@@ -59,35 +42,6 @@ export async function getMessageHandler(
   }
 
   return res.send({ data: message });
-}
-
-export async function createMessageHandler(
-  req: FastifyRequest<CreateMessageRequest>,
-  res: FastifyReply,
-) {
-  const { replies = [], ...body } = req.body;
-  const authorId = req.user.userId;
-
-  const uniqueReplies = Array.from(new Set(replies));
-
-  const existingMessages = await getMessagesByIds(uniqueReplies);
-  const validReplyIds = existingMessages.map((m) => m.id);
-  const ignoredReplies = uniqueReplies.filter((id) => !validReplyIds.includes(id));
-
-  if (uniqueReplies.length > 0 && validReplyIds.length === 0) {
-    return res.status(400).send({ message: 'No valid messages to reply to' });
-  }
-
-  const newMessage = await createMessage({
-    ...body,
-    authorId,
-    replies: validReplyIds.map((id) => ({ id })),
-  });
-
-  const server = getSocketServer();
-  server.to('channel:global').emit('message:new', newMessage);
-
-  return res.code(201).send({ data: newMessage, ignoredReplies });
 }
 
 export async function updateMessageHandler(

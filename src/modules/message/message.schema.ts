@@ -1,59 +1,17 @@
 import { z } from 'zod';
 import Schema from '../../utils/schema';
 
-const content = z
-  .string()
-  .min(1, 'Content cannot be empty')
-  .max(2000, 'Content cannot exceed 2000 characters');
-
-const pagination = z.object({
-  limit: z.coerce.number().int().optional(),
-
-  before: Schema.idOrDate.optional(),
-  after: Schema.idOrDate.optional(),
-
-  order: z.enum(['asc', 'desc']).optional(),
-});
-
 export const MessageSchemas = {
-  getAll: {
-    query: pagination,
-  },
-
   getById: {
     params: Schema.cuidParam,
   },
 
-  create: {
-    body: z
-      .object({
-        content,
-        replies: z.array(z.string().cuid()).max(5).optional(),
-        attachments: z.array(z.string().cuid()).max(10).optional(),
-        silent: z.boolean().optional(),
-        private: z.boolean().optional(),
-      })
-      .superRefine((data, ctx) => {
-        if (!data.replies || data.replies.length === 0) {
-          if (data.private === true)
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              message: "A message can't be private when there's no replies",
-              path: ['private'],
-            });
-          if (data.silent === true)
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              message: "A message can't be silent when there's no replies",
-              path: ['silent'],
-            });
-        }
-      }),
-  },
-
   update: {
     body: z.object({
-      content,
+      content: z
+        .string()
+        .min(1, 'Content cannot be empty')
+        .max(2000, 'Content cannot exceed 2000 characters'),
     }),
     params: Schema.cuidParam,
   },

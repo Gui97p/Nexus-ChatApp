@@ -48,4 +48,47 @@ export const ChannelsSchema = {
   deactivateChannel: {
     params: Schemas.cuidParam,
   },
+
+  getMessagesByChannel: {
+    params: Schemas.cuidParam,
+    query: z.object({
+      limit: z.coerce.number().int().optional(),
+
+      before: Schemas.idOrDate.optional(),
+      after: Schemas.idOrDate.optional(),
+
+      order: z.enum(['asc', 'desc']).optional(),
+    }),
+  },
+
+  createMessage: {
+    params: Schemas.cuidParam,
+    body: z
+      .object({
+        content: z
+          .string()
+          .min(1, 'Content cannot be empty')
+          .max(2000, 'Content cannot exceed 2000 characters'),
+        replies: z.array(z.string().cuid()).max(5).optional(),
+        attachments: z.array(z.string().cuid()).max(10).optional(),
+        silent: z.boolean().optional(),
+        private: z.boolean().optional(),
+      })
+      .superRefine((data, ctx) => {
+        if (!data.replies || data.replies.length === 0) {
+          if (data.private === true)
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "A message can't be private when there's no replies",
+              path: ['private'],
+            });
+          if (data.silent === true)
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "A message can't be silent when there's no replies",
+              path: ['silent'],
+            });
+        }
+      }),
+  },
 };

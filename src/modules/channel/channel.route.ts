@@ -14,15 +14,19 @@ import {
   getActiveChannelsHandler,
   updateChannelByIdHandler,
   getDmByIdHandler,
+  getMessagesHandler,
+  createMessageHandler,
 } from './channel.controller';
 import {
   ActivateChannelRequest,
   CreateChannelMembersRequest,
   CreateChannelRequest,
   CreateGroupRequest,
+  CreateMessageRequest,
   DeactivateChannelRequest,
   DeleteChannelByIdRequest,
   DeleteChannelMemberRequest,
+  getAllMessages,
   GetChannelByIdRequest,
   UpdateChannelByIdRequest,
 } from './channel.types';
@@ -60,12 +64,12 @@ export function registerChannelRoutes(app: FastifyInstance) {
   );
 
   app.post<CreateChannelMembersRequest>(
-    '/:id/member',
+    '/:id/members',
     { preHandler: [authenticate, zodValidate(ChannelsSchema.createChannelMembers)] },
     createChannelMembersHandler,
   );
   app.delete<DeleteChannelMemberRequest>(
-    '/:id/member/:memberId',
+    '/:id/members/:memberId',
     { preHandler: [authenticate, zodValidate(ChannelsSchema.deleteChannelMember)] },
     deleteChannelMemberHandler,
   );
@@ -80,5 +84,35 @@ export function registerChannelRoutes(app: FastifyInstance) {
     '/active/:id',
     { preHandler: [authenticate, zodValidate(ChannelsSchema.deactivateChannel)] },
     deactivateChannelHandler,
+  );
+
+  app.get<getAllMessages>(
+    '/:id/messages',
+    {
+      preHandler: [authenticate, zodValidate(ChannelsSchema.getMessagesByChannel)],
+      //schema: MessageDocs.getAll,
+      config: {
+        rateLimit: {
+          max: 120,
+          timeWindow: '1 minute',
+        },
+      },
+    },
+    getMessagesHandler,
+  );
+
+  app.post<CreateMessageRequest>(
+    '/:id/messages',
+    {
+      preHandler: [authenticate, zodValidate(ChannelsSchema.createMessage)],
+      //schema: MessageDocs.create,
+      config: {
+        rateLimit: {
+          max: 30,
+          timeWindow: '30 seconds',
+        },
+      },
+    },
+    createMessageHandler,
   );
 }

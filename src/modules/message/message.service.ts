@@ -25,6 +25,7 @@ const attachments = {
 };
 
 interface GetMessagesParams {
+  channelId: string;
   userId: string;
   limit?: number;
   before?: { type: 'id' | 'date'; value: string | Date };
@@ -33,6 +34,7 @@ interface GetMessagesParams {
 }
 
 export function getMessages({
+  channelId,
   userId,
   limit = 50,
   before,
@@ -41,6 +43,7 @@ export function getMessages({
 }: GetMessagesParams) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const where: any = {
+    channelId,
     OR: [
       { private: false },
       {
@@ -126,6 +129,7 @@ export function createMessage(data: createMessageType) {
     data: {
       content: data.content,
       authorId: data.authorId,
+      channelId: data.channelId,
       private: data.private,
       silent: data.silent,
 
@@ -133,7 +137,7 @@ export function createMessage(data: createMessageType) {
         connect: data.attachments?.map((id) => ({ id })),
       },
       repliedTo: {
-        connect: data.replies,
+        connect: data.replies?.map((id) => ({ id })),
       },
     },
     include: {

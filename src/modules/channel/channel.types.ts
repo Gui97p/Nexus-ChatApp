@@ -12,3 +12,6 @@ export type DeleteChannelMemberRequest = InferRequest<typeof ChannelsSchema.dele
 
 export type ActivateChannelRequest = InferRequest<typeof ChannelsSchema.activateChannel>;
 export type DeactivateChannelRequest = InferRequest<typeof ChannelsSchema.deactivateChannel>;
+
+export type getAllMessages = InferRequest<typeof ChannelsSchema.getMessagesByChannel>;
+export type CreateMessageRequest = InferRequest<typeof ChannelsSchema.createMessage>;
