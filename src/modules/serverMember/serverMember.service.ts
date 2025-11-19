@@ -22,15 +22,17 @@ export function CreateServerMember(serverId: string, memberId: string) {
   });
 }
 
-export function updateServerMember(
+export async function updateServerMember(
   serverId: string,
   memberId: string,
   data: UpdateServerMemberRequest['Body'],
 ) {
-  return prisma.serverMember.updateMany({
+  await prisma.serverMember.updateMany({
     where: { serverId, memberId },
     data,
   });
+
+  return findServerMemberByMemberId(serverId, memberId);
 }
 
 export function deleteServerMember(serverId: string, memberId: string) {

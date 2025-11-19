@@ -1,6 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import {
   createServer,
+  deleteServer,
   findServerById,
   findServerChannels,
   findServers,
@@ -117,6 +118,8 @@ export async function deleteServerHandler(
     return res.status(404).send({ message: 'Server not found' });
   }
 
+  await deleteServer(id);
+
   return res.send({ data: 'Server deleted successfully' });
 }
 
@@ -203,6 +206,10 @@ export async function createServerMemberHandler(
   if (!server) {
     return res.status(404).send({ message: 'Server not found' });
   }
+  const existingMember = await findServerMemberByMemberId(serverId, memberId);
+  if (existingMember) {
+    return res.status(400).send({ message: 'Member already exists in server' });
+  }
 
   const member = await CreateServerMember(serverId, memberId);
 
@@ -247,7 +254,11 @@ export async function deleteServerMemberHandler(
     return res.status(404).send({ message: 'Member not found in server' });
   }
 
-  await deleteServerMember(serverId, memberId);
+  const response = await deleteServerMember(serverId, memberId);
 
-  return res.send({ data: 'Server member deleted successfully' });
+  if (response.count > 0) {
+    return res.send({ data: 'Server member deleted successfully' });
+  } else {
+    return res.status(500).send({ message: 'Failed to delete server member' });
+  }
 }
