@@ -40,7 +40,7 @@ interface GetMessagesParams {
   order?: 'asc' | 'desc';
 }
 
-export function getMessages({
+export function findMessages({
   channelId,
   userId,
   limit = 50,
@@ -99,7 +99,7 @@ export function getMessages({
   });
 }
 
-export function getMessagesByIds(idArray: string[]) {
+export function findMessagesByIds(idArray: string[]) {
   return prisma.message.findMany({
     where: {
       id: {
@@ -109,7 +109,7 @@ export function getMessagesByIds(idArray: string[]) {
   });
 }
 
-export function getMessageById(id: string) {
+export function findMessageById(id: string) {
   return prisma.message.findUnique({
     where: { id },
     include: {
@@ -121,7 +121,7 @@ export function getMessageById(id: string) {
   });
 }
 
-export function getSensitiveById(id: string) {
+export function findSensitiveById(id: string) {
   return prisma.message.findUnique({
     where: { id },
     include: {

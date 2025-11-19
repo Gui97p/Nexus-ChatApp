@@ -45,4 +45,13 @@ export function reference(ref: string) {
   };
 }
 
+export function cuidParam(name: string) {
+  return objectElement({
+    id: stringElement('cmhc8ydab0000qsblnb4nhk8a', { description: `${name} Id` }),
+  });
+}
+
 export const security = [{ bearerAuth: [] }];
+export const NotFound = objectElement({
+  message: stringElement('Message not found'),
+});

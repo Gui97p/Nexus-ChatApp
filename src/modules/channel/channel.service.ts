@@ -1,7 +1,7 @@
 import prisma from '../../utils/prisma';
 import { UpdateChannelByIdRequest } from './channel.types';
 
-export function getActiveChannelsByUserId(userId: string) {
+export function findActiveChannelsByUserId(userId: string) {
   return prisma.user.findUnique({
     where: { id: userId },
     select: {
@@ -18,7 +18,7 @@ export function getActiveChannelsByUserId(userId: string) {
   });
 }
 
-export function getDmChannelBetweenUsers(userId1: string, userId2: string) {
+export function findDmChannelBetweenUsers(userId1: string, userId2: string) {
   return prisma.channel.findFirst({
     where: {
       type: 'DM',
@@ -43,13 +43,22 @@ export function getDmChannelBetweenUsers(userId1: string, userId2: string) {
   });
 }
 
-export function getChannelById(id: string) {
+export function findChannelById(id: string) {
   return prisma.channel.findUnique({
     where: { id },
     omit: {
       serverId: true,
       parentId: true,
     },
+    include: {
+      recipients: true,
+    },
+  });
+}
+
+export function findSensitiveChannelById(id: string) {
+  return prisma.channel.findUnique({
+    where: { id },
     include: {
       recipients: true,
     },
@@ -107,10 +116,6 @@ export function updateChannelById(id: string, data: UpdateChannelByIdRequest['Bo
   return prisma.channel.update({
     where: { id },
     data,
-    omit: {
-      serverId: true,
-      parentId: true,
-    },
     include: {
       recipients: true,
     },

@@ -16,9 +16,10 @@ import {
   addActiveChannel,
   createChannel,
   deleteChannelById,
-  getActiveChannelsByUserId,
-  getChannelById,
-  getDmChannelBetweenUsers,
+  findSensitiveChannelById,
+  findActiveChannelsByUserId,
+  findChannelById,
+  findDmChannelBetweenUsers,
   removeActiveChannel,
   updateChannelById,
 } from './channel.service';
@@ -26,15 +27,15 @@ import { findUserById } from '../user/user.service';
 import {
   createChannelMemberBulk,
   deleteChannelMember,
-  getChannelMember,
+  findChannelMember,
 } from '../channelMember/channelMember.service';
 import { findServerById } from '../server/server.service';
-import { createMessage, getMessages, getMessagesByIds } from '../message/message.service';
+import { createMessage, findMessages, findMessagesByIds } from '../message/message.service';
 import { getSocketServer } from '../../utils/socket';
 import { findServerMemberByMemberId } from '../serverMember/serverMember.service';
 
 async function checkUserInChannel(channelId: string, userId: string) {
-  const channel = await getChannelById(channelId);
+  const channel = await findSensitiveChannelById(channelId);
   if (!channel) {
     return false;
   }
@@ -63,7 +64,7 @@ export async function createChannelHandler(
     return res.status(404).send({ message: 'User recipient not found' });
   }
 
-  const existingChannel = await getDmChannelBetweenUsers(userId, body.recipientId);
+  const existingChannel = await findDmChannelBetweenUsers(userId, body.recipientId);
   if (existingChannel) {
     return res.status(200).send({ data: existingChannel });
   }
@@ -102,7 +103,7 @@ export async function getChannelByIdHandler(
 ) {
   const channelId = req.params.id;
 
-  const channel = await getChannelById(channelId);
+  const channel = await findChannelById(channelId);
   if (!channel) {
     return res.status(404).send({ message: 'Channel not found' });
   }
@@ -121,7 +122,7 @@ export async function getDmByIdHandler(
   const recipientId = req.params.id;
   const userId = req.user.userId;
 
-  const channel = await getDmChannelBetweenUsers(userId, recipientId);
+  const channel = await findDmChannelBetweenUsers(userId, recipientId);
   if (!channel) {
     return res.status(404).send({ message: 'Channel not found' });
   }
@@ -137,7 +138,7 @@ export async function updateChannelByIdHandler(
   const body = req.body;
   const userId = req.user.userId;
 
-  const channel = await getChannelById(channelId);
+  const channel = await findSensitiveChannelById(channelId);
   if (!channel) {
     return res.status(404).send({ message: 'Channel not found' });
   }
@@ -147,11 +148,19 @@ export async function updateChannelByIdHandler(
       return res.status(403).send({ message: 'Unauthorized' });
     }
 
-    await updateChannelById(channelId, {
+    const updatedChannel = await updateChannelById(channelId, {
       name: body.name,
       icon: body.icon,
     });
-    return res.status(200).send({ data: 'Channel updated successfully' });
+    return res.status(200).send({
+      data: {
+        id: updatedChannel.id,
+        name: updatedChannel.name,
+        icon: updatedChannel.icon,
+        ownerId: updatedChannel.ownerId,
+        type: updatedChannel.type,
+      },
+    });
   } else if (channel.type !== 'DM') {
     const server = await findServerById(channel.serverId!);
     if (server?.ownerId !== userId) {
@@ -162,7 +171,15 @@ export async function updateChannelByIdHandler(
       name: body.name,
       parentId: body.parentId,
     });
-    return res.status(200).send({ data: updatedChannel });
+    return res.status(200).send({
+      data: {
+        id: updatedChannel.id,
+        name: updatedChannel.name,
+        type: updatedChannel.type,
+        parentId: updatedChannel.parentId,
+        serverId: updatedChannel.serverId,
+      },
+    });
   } else {
     return res.status(400).send({ message: 'DM channels cannot be updated' });
   }
@@ -174,7 +191,7 @@ export async function deleteChannelByIdHandler(
 ) {
   const channelId = req.params.id;
 
-  const channel = await getChannelById(channelId);
+  const channel = await findSensitiveChannelById(channelId);
   if (!channel) {
     return res.status(404).send({ message: 'Channel not found' });
   }
@@ -203,7 +220,7 @@ export async function createChannelMembersHandler(
   const channelId = req.params.id;
   const body = req.body;
 
-  const channel = await getChannelById(channelId);
+  const channel = await findChannelById(channelId);
   if (!channel) {
     return res.status(404).send({ message: 'Channel not found' });
   }
@@ -224,7 +241,7 @@ export async function deleteChannelMemberHandler(
   const channelId = req.params.id;
   const memberId = req.params.memberId;
 
-  const channel = await getChannelById(channelId);
+  const channel = await findChannelById(channelId);
   if (!channel) {
     return res.status(404).send({ message: 'Channel not found' });
   }
@@ -233,7 +250,7 @@ export async function deleteChannelMemberHandler(
     return res.status(400).send({ message: 'Only Group DM channels can have members deleted' });
   }
 
-  const channelMember = await getChannelMember(channelId, memberId);
+  const channelMember = await findChannelMember(channelId, memberId);
   if (!channelMember) {
     return res.status(404).send({ message: 'Channel member not found' });
   }
@@ -249,7 +266,7 @@ export async function deleteChannelMemberHandler(
 export async function getActiveChannelsHandler(req: FastifyRequest, res: FastifyReply) {
   const userId = req.user.userId;
 
-  const activeChannels = await getActiveChannelsByUserId(userId);
+  const activeChannels = await findActiveChannelsByUserId(userId);
   return res.status(200).send({ data: activeChannels });
 }
 
@@ -260,7 +277,7 @@ export async function activateChannelHandler(
   const userId = req.user.userId;
   const channelId = req.params.id;
 
-  const channel = await getChannelById(channelId);
+  const channel = await findChannelById(channelId);
   if (!channel) {
     return res.status(404).send({ message: 'Channel not found' });
   }
@@ -280,7 +297,7 @@ export async function deactivateChannelHandler(
   const userId = req.user.userId;
   const channelId = req.params.id;
 
-  const channel = await getChannelById(channelId);
+  const channel = await findChannelById(channelId);
   if (!channel) {
     return res.status(404).send({ message: 'Channel not found' });
   }
@@ -298,7 +315,7 @@ export async function getMessagesHandler(req: FastifyRequest<getAllMessages>, re
   const { limit, before, after, order } = req.query;
   const channelId = req.params.id;
 
-  const channel = await getChannelById(channelId);
+  const channel = await findSensitiveChannelById(channelId);
   if (!channel) {
     return res.status(404).send({ message: 'Channel not found' });
   }
@@ -307,7 +324,7 @@ export async function getMessagesHandler(req: FastifyRequest<getAllMessages>, re
     return res.status(403).send({ message: 'Unauthorized' });
   }
 
-  const messages = await getMessages({ channelId, userId, limit, before, after, order });
+  const messages = await findMessages({ channelId, userId, limit, before, after, order });
 
   return res.send({ data: messages });
 }
@@ -320,7 +337,7 @@ export async function createMessageHandler(
   const authorId = req.user.userId;
   const channelId = req.params.id;
 
-  const channel = await getChannelById(channelId);
+  const channel = await findSensitiveChannelById(channelId);
   if (!channel) {
     return res.status(404).send({ message: 'Channel not found' });
   }
@@ -331,7 +348,7 @@ export async function createMessageHandler(
 
   const uniqueReplies = Array.from(new Set(replies));
 
-  const existingMessages = await getMessagesByIds(uniqueReplies);
+  const existingMessages = await findMessagesByIds(uniqueReplies);
   const validReplyIds = existingMessages.map((m) => m.id);
   const ignoredReplies = uniqueReplies.filter((id) => !validReplyIds.includes(id));
 

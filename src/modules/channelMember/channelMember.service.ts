@@ -1,6 +1,6 @@
 import prisma from '../../utils/prisma';
 
-export function getChannelMember(channelId: string, memberId: string) {
+export function findChannelMember(channelId: string, memberId: string) {
   return prisma.channelMember.findFirst({
     where: {
       channelId,

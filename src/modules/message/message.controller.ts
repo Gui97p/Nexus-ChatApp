@@ -1,9 +1,9 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import {
   deleteMessage,
-  getMessageById,
-  getMessagesByIds,
-  getSensitiveById,
+  findMessageById,
+  findMessagesByIds,
+  findSensitiveById,
   updateMessage,
 } from './message.service';
 import { getSocketServer } from '../../utils/socket';
@@ -16,19 +16,19 @@ export async function getMessageHandler(
   const userId = req.user.userId;
   const { id } = req.params;
 
-  const message = await getMessageById(id);
+  const message = await findMessageById(id);
 
   if (!message) {
     return res.status(404).send({ message: 'Message not found' });
   }
 
   if (message.private) {
-    const sensitiveMessage = await getSensitiveById(message.id);
+    const sensitiveMessage = await findSensitiveById(message.id);
 
-    const repliedTo = (await getMessagesByIds(sensitiveMessage!.repliedTo.map((v) => v.id))).map(
+    const repliedTo = (await findMessagesByIds(sensitiveMessage!.repliedTo.map((v) => v.id))).map(
       (v) => v.authorId,
     );
-    const replies = (await getMessagesByIds(sensitiveMessage!.replies.map((v) => v.id))).map(
+    const replies = (await findMessagesByIds(sensitiveMessage!.replies.map((v) => v.id))).map(
       (v) => v.authorId,
     );
     const condition =
@@ -52,7 +52,7 @@ export async function updateMessageHandler(
   const userId = req.user.userId;
   const { content } = req.body;
 
-  const message = await getMessageById(id);
+  const message = await findMessageById(id);
 
   if (!message) {
     return res.code(404).send({ message: 'Message not found' });
@@ -77,7 +77,7 @@ export async function deleteMessageHandler(
   const { id } = req.params;
   const userId = req.user.userId;
 
-  const message = await getMessageById(id);
+  const message = await findMessageById(id);
 
   if (!message) {
     return res.code(404).send({ message: 'Message not found' });

@@ -66,4 +66,94 @@ export async function registerSchemas(app: FastifyInstance) {
       size: { type: 'number', example: 160213 },
     },
   });
+
+  app.addSchema({
+    $id: 'ChannelDM',
+    type: 'object',
+    properties: {
+      id: { type: 'string', example: 'cmhc8ydab0000qsblnb4nhk8a' },
+      type: { type: 'string', example: 'DM' },
+      recipients: {
+        type: 'array',
+        items: { $ref: 'ChannelMember#' },
+      },
+    },
+  });
+
+  app.addSchema({
+    $id: 'ChannelGroup',
+    type: 'object',
+    properties: {
+      id: { type: 'string', example: 'cmhc8ydab0000qsblnb4nhk8a' },
+      name: { type: 'string', example: 'General' },
+      type: { type: 'string', example: 'GROUP' },
+      icon: {
+        type: 'string',
+        example:
+          'https://cdn.discordapp.com/icons/709440492890488873/f8e1c6b1b8a17f67a2bdb91ec41b40f2.png?size=2048',
+      },
+      ownerId: { type: 'string', example: 'cmhcbfs0i0001qsebq6e0bw6a' },
+      recipients: {
+        type: 'array',
+        items: { $ref: 'ChannelMember#' },
+      },
+    },
+  });
+
+  app.addSchema({
+    $id: 'ChannelServer',
+    type: 'object',
+    properties: {
+      id: { type: 'string', example: 'cmhc8ydab0000qsblnb4nhk8a' },
+      name: { type: 'string', example: 'General' },
+      type: { type: 'string', example: 'SERVER' },
+      serverId: { type: 'string', example: 'cmhc8ydab0000qsblnb4nhk8b' },
+      parentId: { type: 'string', example: 'cmhc8ydab0000qsblnb4nhk8b' },
+    },
+  });
+
+  app.addSchema({
+    $id: 'ChannelMember',
+    type: 'object',
+    properties: {
+      id: { type: 'string', example: 'cmhc8ydab0000qsblnb4nhk8a' },
+      memberId: { type: 'string', example: 'cmhcbfs0i0001qsebq6e0bw6a' },
+      channelId: { type: 'string', example: 'cmhc8ydab0000qsblnb4nhk8b' },
+    },
+  });
+
+  app.addSchema({
+    $id: 'Server',
+    type: 'object',
+    properties: {
+      id: { type: 'string', example: 'cmhc8ydab0000qsblnb4nhk8b' },
+      name: { type: 'string', example: 'My Awesome Server' },
+      icon: {
+        type: 'string',
+        example:
+          'https://cdn.discordapp.com/icons/709440492890488873/f8e1c6b1b8a17f67a2bdb91ec41b40f2.png?size=2048',
+      },
+      ownerId: { type: 'string', example: 'cmhcbfs0i0001qsebq6e0bw6a' },
+      createdAt: { type: 'string', format: 'date-time' },
+      updatedAt: { type: 'string', format: 'date-time' },
+    },
+  });
+
+  app.addSchema({
+    $id: 'ServerMember',
+    type: 'object',
+    properties: {
+      id: { type: 'string', example: 'cmhc8ydab0000qsblnb4nhk8a' },
+      memberId: { type: 'string', example: 'cmhcbfs0i0001qsebq6e0bw6a' },
+      serverId: { type: 'string', example: 'cmhc8ydab0000qsblnb4nhk8b' },
+      displayName: { type: 'string', example: 'John the Server Member' },
+      avatar: {
+        type: 'string',
+        example:
+          'https://cdn.discordapp.com/avatars/709440492890488873/f8e1c6b1b8a17f67a2bdb91ec41b40f2.png?size=2048',
+      },
+      aboutMe: { type: 'string', example: 'Hello! I am a server member.' },
+      joinedAt: { type: 'string', format: 'date-time' },
+    },
+  });
 }
