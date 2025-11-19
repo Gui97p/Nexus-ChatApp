@@ -5,6 +5,18 @@ export function findServers() {
   return prisma.server.findMany();
 }
 
+export function findServersJoinedByUser(userId: string) {
+  return prisma.server.findMany({
+    where: {
+      members: {
+        some: {
+          memberId: userId,
+        },
+      },
+    },
+  });
+}
+
 export function findServerById(id: string) {
   return prisma.server.findUnique({
     where: { id },

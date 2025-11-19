@@ -4,6 +4,7 @@ import {
   findServerById,
   findServerChannels,
   findServers,
+  findServersJoinedByUser,
   updateServer,
 } from './server.service';
 import { findFileById } from '../file/file.service';
@@ -32,6 +33,19 @@ import {
 
 export async function getServersHandler(req: FastifyRequest, res: FastifyReply) {
   const servers = await findServers();
+
+  for (const server of servers) {
+    if (!server.icon) continue;
+    server.icon = (await findFileById(server.icon))?.url || null;
+  }
+
+  return res.send({ data: servers });
+}
+
+export async function geyMyServersHandler(req: FastifyRequest, res: FastifyReply) {
+  const userId = req.user.userId;
+
+  const servers = await findServersJoinedByUser(userId);
 
   for (const server of servers) {
     if (!server.icon) continue;

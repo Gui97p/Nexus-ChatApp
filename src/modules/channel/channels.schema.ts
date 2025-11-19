@@ -20,7 +20,8 @@ export const ChannelsSchema = {
     body: z
       .object({
         name: z.string().min(1).max(30),
-        icon: z.string().cuid(),
+        icon: z.string().cuid().nullable(),
+        parentId: z.string().cuid().nullable(),
       })
       .partial(),
   },

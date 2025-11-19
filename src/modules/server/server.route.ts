@@ -39,6 +39,7 @@ export function registerServerRoutes(app: FastifyInstance) {
     { preHandler: [authenticate, zodValidate(serverSchemas.getById)] },
     getServerHandler,
   );
+  app.get('/me', { preHandler: authenticate }, getServersHandler);
   app.post<CreateServerRequest>(
     '/',
     { preHandler: [authenticate, zodValidate(serverSchemas.create)] },

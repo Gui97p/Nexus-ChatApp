@@ -26,6 +26,7 @@ import {
   deleteChannelMember,
   getChannelMember,
 } from '../channelMember/channelMember.service';
+import { findServerById } from '../server/server.service';
 
 export async function createChannelHandler(
   req: FastifyRequest<CreateChannelRequest>,
@@ -111,22 +112,37 @@ export async function updateChannelByIdHandler(
 ) {
   const channelId = req.params.id;
   const body = req.body;
+  const userId = req.user.userId;
 
   const channel = await getChannelById(channelId);
   if (!channel) {
     return res.status(404).send({ message: 'Channel not found' });
   }
 
-  if (channel.type !== 'GROUP_DM') {
-    return res.status(400).send({ message: 'Only Group DM channels can be updated' });
-  }
+  if (channel.type === 'GROUP_DM') {
+    if (channel.recipients.map((r) => r.userId).includes(userId) === false) {
+      return res.status(403).send({ message: 'Unauthorized' });
+    }
 
-  if (channel.recipients.map((r) => r.userId).includes(req.user.userId) === false) {
-    return res.status(403).send({ message: 'Unauthorized' });
-  }
+    await updateChannelById(channelId, {
+      name: body.name,
+      icon: body.icon,
+    });
+    return res.status(200).send({ data: 'Channel updated successfully' });
+  } else if (channel.type !== 'DM') {
+    const server = await findServerById(channel.serverId!);
+    if (server?.ownerId !== userId) {
+      return res.status(403).send({ message: 'Unauthorized' });
+    }
 
-  const updatedChannel = await updateChannelById(channelId, body);
-  return res.status(200).send({ data: updatedChannel });
+    const updatedChannel = await updateChannelById(channelId, {
+      name: body.name,
+      parentId: body.parentId,
+    });
+    return res.status(200).send({ data: updatedChannel });
+  } else {
+    return res.status(400).send({ message: 'DM channels cannot be updated' });
+  }
 }
 
 export async function deleteChannelByIdHandler(
@@ -140,12 +156,17 @@ export async function deleteChannelByIdHandler(
     return res.status(404).send({ message: 'Channel not found' });
   }
 
-  if (channel.type !== 'GROUP_DM') {
-    return res.status(400).send({ message: 'Only Group DM channels can be deleted' });
-  }
-
-  if (channel.ownerId !== req.user.userId) {
-    return res.status(403).send({ message: 'Unauthorized' });
+  if (channel.type === 'GROUP_DM') {
+    if (channel.ownerId !== req.user.userId) {
+      return res.status(403).send({ message: 'Unauthorized' });
+    }
+  } else if (channel.type !== 'DM') {
+    const server = await findServerById(channel.serverId!);
+    if (server?.ownerId !== req.user.userId) {
+      return res.status(403).send({ message: 'Unauthorized' });
+    }
+  } else {
+    return res.status(400).send({ message: 'DM channels cannot be deleted' });
   }
 
   await deleteChannelById(channelId);
