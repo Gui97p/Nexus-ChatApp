@@ -7,13 +7,13 @@ export const fileDocs = {
     description: 'Uploads new files in database to be linked',
     security,
     consumes: ['multipart/form-data'],
-    body: objectElement({
+    /*body: objectElement({
       files: arrayElement(
         stringElement(undefined, {
           format: 'binary',
         }),
       ),
-    }),
+    }),*/
     response: {
       201: objectElement({
         attachments: arrayElement(reference('Attachment')),
