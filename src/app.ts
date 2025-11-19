@@ -7,7 +7,7 @@ import { Server } from 'socket.io';
 import { registerUserRoutes } from './modules/user/user.route';
 import { registerAuthRoutes } from './modules/auth/auth.route';
 import { registerMessageRoutes } from './modules/message/message.route';
-import { setupWebSocket } from './websockets';
+import { setupWebSocket } from './sockets';
 import { setupSwagger } from './plugins/swagger';
 import { registerSchemas } from './plugins/registerSchemas';
 import { registerFileRoutes } from './modules/file/file.route';

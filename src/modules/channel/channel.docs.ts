@@ -1,6 +1,5 @@
 import {
   arrayElement,
-  boolElement,
   cuidParam,
   NotFound,
   numberElement,
@@ -278,30 +277,7 @@ export const channelDocs = {
     description: 'Sends a new message to the specified channel.',
     security,
     params: ChannelId,
-    body: objectElement(
-      {
-        content: stringElement('Hello, world!', {
-          minLength: 1,
-          maxLength: 2000,
-          description: 'Content of the message',
-        }),
-        replies: arrayElement(stringElement('cmhc8ydab0000qsblnb4nhk8a'), {
-          description: 'Array of message Ids being replied to',
-          maxItems: 5,
-        }),
-        attachments: arrayElement(stringElement('cmhc8ydab0000qsblnb4nhk8a'), {
-          description: 'Array of attachment Ids',
-          maxItems: 10,
-        }),
-        silent: boolElement(false, {
-          description: 'Whether the message is sent silently',
-        }),
-        private: boolElement(false, {
-          description: 'Whether the message is private',
-        }),
-      },
-      { description: 'Message creation payload' },
-    ),
+    body: objectElement(undefined, reference('Message')),
     response: {
       201: objectElement({
         message: objectElement(undefined, reference('Message')),

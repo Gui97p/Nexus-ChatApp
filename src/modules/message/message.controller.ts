@@ -6,8 +6,11 @@ import {
   findSensitiveById,
   updateMessage,
 } from './message.service';
-import { getSocketServer } from '../../utils/socket';
 import { DeleteMessageRequest, getMessageByIdRequest, UpdateMessageRequest } from './message.types';
+import {
+  dispatchMessageDelete,
+  dispatchMessageUpdate,
+} from '../../sockets/dispatcher/socket.dispatcher';
 
 export async function getMessageHandler(
   req: FastifyRequest<getMessageByIdRequest>,
@@ -64,8 +67,7 @@ export async function updateMessageHandler(
 
   const updatedMessage = await updateMessage(id, content);
 
-  const server = getSocketServer();
-  server.to('channel:global').emit('message:updated', updatedMessage);
+  dispatchMessageUpdate(updatedMessage);
 
   return res.send({ message: 'Message updated successfully' });
 }
@@ -87,10 +89,11 @@ export async function deleteMessageHandler(
     return res.code(403).send({ message: 'You must be the author of the message to delete it' });
   }
 
+  const channelId = message.channelId;
+
   await deleteMessage(id);
 
-  const server = getSocketServer();
-  server.to('channel:global').emit('message:deleted', { id });
+  dispatchMessageDelete(channelId, id);
 
   return res.send({ message: 'Message deleted successfully' });
 }

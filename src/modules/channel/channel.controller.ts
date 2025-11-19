@@ -31,8 +31,8 @@ import {
 } from '../channelMember/channelMember.service';
 import { findServerById } from '../server/server.service';
 import { createMessage, findMessages, findMessagesByIds } from '../message/message.service';
-import { getSocketServer } from '../../utils/socket';
 import { findServerMemberByMemberId } from '../serverMember/serverMember.service';
+import { dispatchMessage } from '../../sockets/dispatcher/socket.dispatcher';
 
 async function checkUserInChannel(channelId: string, userId: string) {
   const channel = await findSensitiveChannelById(channelId);
@@ -373,8 +373,7 @@ export async function createMessageHandler(
     replies: validReplyIds,
   });
 
-  const server = getSocketServer();
-  server.to('channel:global').emit('message:new', newMessage);
+  dispatchMessage(newMessage);
 
   return res.code(201).send({ data: newMessage, ignoredReplies });
 }
