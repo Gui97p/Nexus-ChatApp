@@ -4,12 +4,20 @@ import { UpdateServerMemberRequest } from './serverMember.types';
 export function findServerMembersByServerId(serverId: string) {
   return prisma.serverMember.findMany({
     where: { serverId },
+    include: {
+      member: true,
+      server: true,
+    },
   });
 }
 
 export function findServerMemberByMemberId(serverId: string, memberId: string) {
   return prisma.serverMember.findFirst({
     where: { serverId, memberId },
+    include: {
+      member: true,
+      server: true,
+    },
   });
 }
 
@@ -18,6 +26,10 @@ export function CreateServerMember(serverId: string, memberId: string) {
     data: {
       serverId,
       memberId,
+    },
+    include: {
+      member: true,
+      server: true,
     },
   });
 }

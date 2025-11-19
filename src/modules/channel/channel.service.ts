@@ -6,6 +6,10 @@ export function getActiveChannelsByUserId(userId: string) {
     where: { id: userId },
     select: {
       activeChannels: {
+        omit: {
+          serverId: true,
+          parentId: true,
+        },
         include: {
           recipients: true,
         },
@@ -26,6 +30,13 @@ export function getDmChannelBetweenUsers(userId1: string, userId2: string) {
         },
       },
     },
+    omit: {
+      serverId: true,
+      parentId: true,
+      icon: true,
+      name: true,
+      ownerId: true,
+    },
     include: {
       recipients: true,
     },
@@ -35,6 +46,10 @@ export function getDmChannelBetweenUsers(userId1: string, userId2: string) {
 export function getChannelById(id: string) {
   return prisma.channel.findUnique({
     where: { id },
+    omit: {
+      serverId: true,
+      parentId: true,
+    },
     include: {
       recipients: true,
     },
@@ -52,6 +67,10 @@ export function createChannel(data: { type: 'DM' | 'GROUP_DM'; recipientIds: str
           })),
         },
       },
+    },
+    omit: {
+      serverId: true,
+      parentId: true,
     },
     include: {
       recipients: true,
@@ -77,6 +96,10 @@ export function createServerChannel({
       serverId,
       parentId,
     },
+    omit: {
+      icon: true,
+      ownerId: true,
+    },
   });
 }
 
@@ -84,6 +107,10 @@ export function updateChannelById(id: string, data: UpdateChannelByIdRequest['Bo
   return prisma.channel.update({
     where: { id },
     data,
+    omit: {
+      serverId: true,
+      parentId: true,
+    },
     include: {
       recipients: true,
     },
@@ -104,6 +131,9 @@ export function addActiveChannel(userId: string, channelId: string) {
         connect: { id: channelId },
       },
     },
+    select: {
+      activeChannels: true,
+    },
   });
 }
 
@@ -114,6 +144,9 @@ export function removeActiveChannel(userId: string, channelId: string) {
       activeChannels: {
         disconnect: { id: channelId },
       },
+    },
+    select: {
+      activeChannels: true,
     },
   });
 }

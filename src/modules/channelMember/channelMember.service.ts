@@ -6,6 +6,10 @@ export function getChannelMember(channelId: string, memberId: string) {
       channelId,
       userId: memberId,
     },
+    select: {
+      channelId: true,
+      userId: true,
+    },
   });
 }
 

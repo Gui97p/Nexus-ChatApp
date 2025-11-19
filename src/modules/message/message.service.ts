@@ -9,6 +9,13 @@ const author = {
   },
 };
 
+const channel = {
+  select: {
+    name: true,
+    type: true,
+  },
+};
+
 const repliedTo = {
   select: {
     id: true,
@@ -85,6 +92,7 @@ export function getMessages({
     where,
     include: {
       author,
+      channel,
       repliedTo,
       attachments,
     },
@@ -106,6 +114,7 @@ export function getMessageById(id: string) {
     where: { id },
     include: {
       author,
+      channel,
       repliedTo,
       attachments,
     },
@@ -117,6 +126,7 @@ export function getSensitiveById(id: string) {
     where: { id },
     include: {
       author,
+      channel,
       repliedTo,
       attachments,
       replies: true,
@@ -142,6 +152,7 @@ export function createMessage(data: createMessageType) {
     },
     include: {
       author,
+      channel,
       repliedTo,
       attachments,
     },
@@ -152,6 +163,12 @@ export function updateMessage(id: string, content: string) {
   return prisma.message.update({
     where: { id },
     data: { content },
+    include: {
+      author,
+      channel,
+      repliedTo,
+      attachments,
+    },
   });
 }
 
