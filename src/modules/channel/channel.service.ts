@@ -5,7 +5,29 @@ export function getActiveChannelsByUserId(userId: string) {
   return prisma.user.findUnique({
     where: { id: userId },
     select: {
-      activeChannels: true,
+      activeChannels: {
+        include: {
+          recipients: true,
+        },
+      },
+    },
+  });
+}
+
+export function getDmChannelBetweenUsers(userId1: string, userId2: string) {
+  return prisma.channel.findFirst({
+    where: {
+      type: 'DM',
+      recipients: {
+        every: {
+          userId: {
+            in: [userId1, userId2],
+          },
+        },
+      },
+    },
+    include: {
+      recipients: true,
     },
   });
 }
@@ -13,6 +35,9 @@ export function getActiveChannelsByUserId(userId: string) {
 export function getChannelById(id: string) {
   return prisma.channel.findUnique({
     where: { id },
+    include: {
+      recipients: true,
+    },
   });
 }
 
@@ -27,6 +52,9 @@ export function createChannel(data: { type: 'DM' | 'GROUP_DM'; recipientIds: str
           })),
         },
       },
+    },
+    include: {
+      recipients: true,
     },
   });
 }
@@ -56,6 +84,9 @@ export function updateChannelById(id: string, data: UpdateChannelByIdRequest['Bo
   return prisma.channel.update({
     where: { id },
     data,
+    include: {
+      recipients: true,
+    },
   });
 }
 

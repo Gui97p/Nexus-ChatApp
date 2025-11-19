@@ -13,6 +13,7 @@ import {
   getChannelByIdHandler,
   getActiveChannelsHandler,
   updateChannelByIdHandler,
+  getDmByIdHandler,
 } from './channel.controller';
 import {
   ActivateChannelRequest,
@@ -41,6 +42,11 @@ export function registerChannelRoutes(app: FastifyInstance) {
     '/:id',
     { preHandler: [authenticate, zodValidate(ChannelsSchema.getChannelById)] },
     getChannelByIdHandler,
+  );
+  app.get<GetChannelByIdRequest>(
+    '/dm/:id',
+    { preHandler: [authenticate, zodValidate(ChannelsSchema.getChannelById)] },
+    getDmByIdHandler,
   );
   app.patch<UpdateChannelByIdRequest>(
     '/:id',

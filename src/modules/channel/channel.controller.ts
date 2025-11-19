@@ -16,6 +16,7 @@ import {
   deleteChannelById,
   getActiveChannelsByUserId,
   getChannelById,
+  getDmChannelBetweenUsers,
   removeActiveChannel,
   updateChannelById,
 } from './channel.service';
@@ -36,6 +37,11 @@ export async function createChannelHandler(
   const targetUser = await findUserById(body.recipientId);
   if (!targetUser) {
     return res.status(404).send({ message: 'User recipient not found' });
+  }
+
+  const existingChannel = await getDmChannelBetweenUsers(userId, body.recipientId);
+  if (existingChannel) {
+    return res.status(200).send({ data: existingChannel });
   }
 
   const channel = await createChannel({
@@ -77,6 +83,25 @@ export async function getChannelByIdHandler(
     return res.status(404).send({ message: 'Channel not found' });
   }
 
+  if (channel.recipients.map((r) => r.userId).includes(req.user.userId) === false) {
+    return res.status(403).send({ message: 'Unauthorized' });
+  }
+
+  return res.status(200).send({ data: channel });
+}
+
+export async function getDmByIdHandler(
+  req: FastifyRequest<GetChannelByIdRequest>,
+  res: FastifyReply,
+) {
+  const recipientId = req.params.id;
+  const userId = req.user.userId;
+
+  const channel = await getDmChannelBetweenUsers(userId, recipientId);
+  if (!channel) {
+    return res.status(404).send({ message: 'Channel not found' });
+  }
+
   return res.status(200).send({ data: channel });
 }
 
@@ -92,6 +117,14 @@ export async function updateChannelByIdHandler(
     return res.status(404).send({ message: 'Channel not found' });
   }
 
+  if (channel.type !== 'GROUP_DM') {
+    return res.status(400).send({ message: 'Only Group DM channels can be updated' });
+  }
+
+  if (channel.recipients.map((r) => r.userId).includes(req.user.userId) === false) {
+    return res.status(403).send({ message: 'Unauthorized' });
+  }
+
   const updatedChannel = await updateChannelById(channelId, body);
   return res.status(200).send({ data: updatedChannel });
 }
@@ -105,6 +138,14 @@ export async function deleteChannelByIdHandler(
   const channel = await getChannelById(channelId);
   if (!channel) {
     return res.status(404).send({ message: 'Channel not found' });
+  }
+
+  if (channel.type !== 'GROUP_DM') {
+    return res.status(400).send({ message: 'Only Group DM channels can be deleted' });
+  }
+
+  if (channel.ownerId !== req.user.userId) {
+    return res.status(403).send({ message: 'Unauthorized' });
   }
 
   await deleteChannelById(channelId);
@@ -144,9 +185,17 @@ export async function deleteChannelMemberHandler(
     return res.status(404).send({ message: 'Channel not found' });
   }
 
+  if (channel.type !== 'GROUP_DM') {
+    return res.status(400).send({ message: 'Only Group DM channels can have members deleted' });
+  }
+
   const channelMember = await getChannelMember(channelId, memberId);
   if (!channelMember) {
     return res.status(404).send({ message: 'Channel member not found' });
+  }
+
+  if (memberId !== req.user.userId && channel.ownerId !== req.user.userId) {
+    return res.status(403).send({ message: 'Unauthorized' });
   }
 
   await deleteChannelMember(channelId, memberId);
@@ -172,6 +221,10 @@ export async function activateChannelHandler(
     return res.status(404).send({ message: 'Channel not found' });
   }
 
+  if (channel.recipients.map((r) => r.userId).includes(req.user.userId) === false) {
+    return res.status(403).send({ message: 'Unauthorized' });
+  }
+
   await addActiveChannel(userId, channelId);
   return res.status(200).send({ data: 'Channel activated successfully' });
 }
@@ -186,6 +239,10 @@ export async function deactivateChannelHandler(
   const channel = await getChannelById(channelId);
   if (!channel) {
     return res.status(404).send({ message: 'Channel not found' });
+  }
+
+  if (channel.recipients.map((r) => r.userId).includes(req.user.userId) === false) {
+    return res.status(403).send({ message: 'Unauthorized' });
   }
 
   await removeActiveChannel(userId, channelId);
