@@ -1,5 +1,6 @@
 import {
   arrayElement,
+  boolElement,
   cuidParam,
   NotFound,
   numberElement,
@@ -277,7 +278,13 @@ export const channelDocs = {
     description: 'Sends a new message to the specified channel.',
     security,
     params: ChannelId,
-    body: objectElement(undefined, reference('Message')),
+    body: objectElement({
+      content: stringElement('Sending a message'),
+      private: boolElement(true),
+      silent: boolElement(false),
+      replies: arrayElement(stringElement('cmhcbfs0i0001qsebq6e0bw6a')),
+      attachments: arrayElement(stringElement('cmhcbfs0i0001qsebq6e0bw6a')),
+    }),
     response: {
       201: objectElement({
         message: objectElement(undefined, reference('Message')),

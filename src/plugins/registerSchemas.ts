@@ -32,6 +32,11 @@ export async function registerSchemas(app: FastifyInstance) {
         items: { type: 'string', example: 'cmhcas3i00001qsblnb4nhk8o' },
         maxItems: 5,
       },
+      attachments: {
+        type: 'array',
+        items: { type: 'string', example: 'cmhcbfs0i0001qsebq6e0bw6a' },
+        maxItems: 10,
+      },
     },
   });
 

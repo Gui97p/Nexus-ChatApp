@@ -375,5 +375,7 @@ export async function createMessageHandler(
 
   dispatchMessage(newMessage);
 
+  console.log(newMessage);
+
   return res.code(201).send({ data: newMessage, ignoredReplies });
 }

@@ -89,6 +89,10 @@ async function buildApp() {
     return () => true;
   });
 
+  app.setSerializerCompiler(() => {
+    return (data) => JSON.stringify(data);
+  });
+
   await registerSchemas(app);
   await setupSwagger(app);
   app.register(setupWebSocket);
