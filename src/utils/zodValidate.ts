@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { z, ZodTypeAny, ZodError } from 'zod';
+import { z, ZodTypeAny, ZodError, ZodIssueCode, ZodIssue } from 'zod';
 
 type SchemaSet = {
   body?: ZodTypeAny;
@@ -11,6 +11,17 @@ export function zodValidate<T extends SchemaSet>(schemas: T) {
   return async (req: FastifyRequest, reply: FastifyReply) => {
     try {
       if (schemas.body) {
+        if (!req.body || typeof req.body !== 'object') {
+          const customIssue: ZodIssue = {
+            code: ZodIssueCode.invalid_type,
+            expected: 'object',
+            received: typeof req.body,
+            path: ['body'],
+            message: 'Request body is required and must be a valid JSON object.',
+          };
+
+          throw new ZodError([customIssue]);
+        }
         req.body = schemas.body.parse(req.body);
       }
 

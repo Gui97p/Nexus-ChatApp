@@ -81,7 +81,12 @@ async function buildApp() {
 
   app.setErrorHandler((error, req: FastifyRequest, res: FastifyReply) => {
     req.log.error(error.stack);
-    res.status(500).send({ message: 'Internal server error' });
+    res.status(500).send({ error: 'Internal server error', message: error.message });
+  });
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  app.setValidatorCompiler((_data) => {
+    return () => true;
   });
 
   await registerSchemas(app);

@@ -165,7 +165,7 @@ export async function registerSchemas(app: FastifyInstance) {
     $id: 'EventsEmitted',
     type: 'object',
     properties: {
-      ['pong']: objectElement({
+      ['ping']: objectElement({
         message: stringElement('pong'),
       }),
       ['message:new']: objectElement(undefined, reference('Message')),
