@@ -5,6 +5,7 @@ import {
   createServerMemberHandler,
   deleteServerHandler,
   deleteServerMemberHandler,
+  getMyServersHandler,
   getServerChannelsHandler,
   getServerHandler,
   getServerMemberByIdHandler,
@@ -40,7 +41,11 @@ export function registerServerRoutes(app: FastifyInstance) {
     { preHandler: [authenticate, zodValidate(serverSchemas.getById)], schema: serverDocs.getById },
     getServerHandler,
   );
-  app.get('/me', { preHandler: authenticate, schema: serverDocs.getMyServers }, getServersHandler);
+  app.get(
+    '/me',
+    { preHandler: authenticate, schema: serverDocs.getMyServers },
+    getMyServersHandler,
+  );
   app.post<CreateServerRequest>(
     '/',
     { preHandler: [authenticate, zodValidate(serverSchemas.create)], schema: serverDocs.create },

@@ -10,7 +10,7 @@ import { DeleteMessageRequest, getMessageByIdRequest, UpdateMessageRequest } fro
 import {
   dispatchMessageDelete,
   dispatchMessageUpdate,
-} from '../../sockets/dispatcher/socket.dispatcher';
+} from '../../sockets/dispatcher/message.dispatcher';
 
 export async function getMessageHandler(
   req: FastifyRequest<getMessageByIdRequest>,

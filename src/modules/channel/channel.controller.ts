@@ -32,7 +32,14 @@ import {
 import { findServerById } from '../server/server.service';
 import { createMessage, findMessages, findMessagesByIds } from '../message/message.service';
 import { findServerMemberByMemberId } from '../serverMember/serverMember.service';
-import { dispatchMessage } from '../../sockets/dispatcher/socket.dispatcher';
+import { dispatchMessage } from '../../sockets/dispatcher/message.dispatcher';
+import {
+  dispatchChannelCreate,
+  dispatchChannelDelete,
+  dispatchChannelUpdate,
+  dispatchServerChannelDelete,
+  dispatchServerChannelUpdate,
+} from '../../sockets/dispatcher/channel.dispatcher';
 
 async function checkUserInChannel(channelId: string, userId: string) {
   const channel = await findSensitiveChannelById(channelId);
@@ -94,6 +101,12 @@ export async function createGroupHandler(
     type: 'GROUP_DM',
     recipientIds: [userId, ...body.recipients],
   });
+
+  dispatchChannelCreate(
+    channel.recipients.map((r) => r.id),
+    channel.id,
+  );
+
   return res.status(201).send({ data: channel });
 }
 
@@ -152,6 +165,12 @@ export async function updateChannelByIdHandler(
       name: body.name,
       icon: body.icon,
     });
+
+    dispatchChannelUpdate(
+      updatedChannel.recipients.map((r) => r.id),
+      updatedChannel,
+    );
+
     return res.status(200).send({
       data: {
         id: updatedChannel.id,
@@ -171,6 +190,9 @@ export async function updateChannelByIdHandler(
       name: body.name,
       parentId: body.parentId,
     });
+
+    dispatchServerChannelUpdate(updatedChannel);
+
     return res.status(200).send({
       data: {
         id: updatedChannel.id,
@@ -210,6 +232,16 @@ export async function deleteChannelByIdHandler(
   }
 
   await deleteChannelById(channelId);
+
+  if (channel.type === 'GROUP_DM') {
+    dispatchChannelDelete(
+      channel.recipients.map((r) => r.id),
+      channel.id,
+    );
+  } else {
+    dispatchServerChannelDelete(channel.serverId!, channel.id);
+  }
+
   return res.send({ data: 'Channel deleted successfully' });
 }
 

@@ -176,6 +176,12 @@ export async function registerSchemas(app: FastifyInstance) {
       ['message:new']: objectElement(undefined, reference('Message')),
       ['message:update']: objectElement(undefined, reference('Message')),
       ['message:delete']: objectElement({ messageId: stringElement('cmhc8ydab0000qsblnb4nhk8a') }),
+      ['channel:new']: objectElement(undefined, reference('ChannelServer')),
+      ['channel:update']: objectElement(undefined, reference('ChannelServer')),
+      ['channel:delete']: objectElement({ channelId: stringElement('cmhc8ydab0000qsblnb4nhk8a') }),
+      ['group:new']: objectElement({ channelId: stringElement('cmhc8ydab0000qsblnb4nhk8a') }),
+      ['group:update']: objectElement(undefined, reference('ChannelGroup')),
+      ['group:delete']: objectElement({ channelId: stringElement('cmhc8ydab0000qsblnb4nhk8a') }),
       ['status:update']: objectElement({
         userId: stringElement('cmhc8ydab0000qsblnb4nhk8a'),
         status: stringElement('online'),

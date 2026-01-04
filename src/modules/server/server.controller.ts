@@ -31,6 +31,7 @@ import {
   findServerMembersByServerId,
   updateServerMember,
 } from '../serverMember/serverMember.service';
+import { dispatchServerChannelCreate } from '../../sockets/dispatcher/channel.dispatcher';
 
 export async function getServersHandler(req: FastifyRequest, res: FastifyReply) {
   const servers = await findServers();
@@ -43,7 +44,7 @@ export async function getServersHandler(req: FastifyRequest, res: FastifyReply) 
   return res.send({ data: servers });
 }
 
-export async function geyMyServersHandler(req: FastifyRequest, res: FastifyReply) {
+export async function getMyServersHandler(req: FastifyRequest, res: FastifyReply) {
   const userId = req.user.userId;
 
   const servers = await findServersJoinedByUser(userId);
@@ -156,6 +157,8 @@ export async function createServerChannelHandler(
     serverId,
     parentId,
   });
+
+  dispatchServerChannelCreate(channel);
 
   return res.status(201).send({ data: channel });
 }
