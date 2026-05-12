@@ -25,7 +25,7 @@ Backend for a chat application built with Fastify, TypeScript, and Prisma. A por
 │   └── tests/
 ├── docker-compose.yml
 └── Dockerfile
-​```
+```
 
 The split between controllers and services is intentional — controllers only deal with HTTP, services handle logic. Each layer is easier to test and extend independently.
 
@@ -38,25 +38,25 @@ git clone https://github.com/Gui97p/chatapp.git
 cd chatapp
 npm install
 cp .env.example .env  # fill in DATABASE_URL, JWT_SECRET, etc.
-​```
+```
 
 **With Docker (recommended):**
-​```bash
+```bash
 docker compose up --build
-​```
+```
 
 **Without Docker** (with a local database already running):
-​```bash
+```bash
 npm run dev
-​```
+```
 
 ---
 
 ## Tests
 
-​```bash
+```bash
 npm test
-​```
+```
 
 ---
 
