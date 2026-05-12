@@ -1,0 +1,33 @@
+import prisma from '../../utils/prisma';
+
+export function findChannelMember(channelId: string, memberId: string) {
+  return prisma.channelMember.findFirst({
+    where: {
+      channelId,
+      userId: memberId,
+    },
+    select: {
+      channelId: true,
+      userId: true,
+    },
+  });
+}
+
+export function createChannelMemberBulk(channelId: string, memberIds: string[]) {
+  return prisma.channelMember.createMany({
+    data: memberIds.map((userId) => ({
+      channelId: channelId,
+      userId,
+    })),
+    skipDuplicates: true,
+  });
+}
+
+export function deleteChannelMember(channelId: string, memberId: string) {
+  return prisma.channelMember.deleteMany({
+    where: {
+      channelId,
+      userId: memberId,
+    },
+  });
+}

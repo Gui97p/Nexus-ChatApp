@@ -14,12 +14,117 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String   @unique
+  id          String   @id @default(cuid())
+  email       String   @unique
+  password    String
+  name        String   @unique
   displayName String?
-  avatar    String?
+  avatar      String?
+  aboutMe     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  messages  Message[] @relation("AuthorMessages")
+  servers   ServerMember[]  @relation("MembersOfServer")
+  channels  ChannelMember[]
+  activeChannels Channel[] @relation("ActiveChannels")
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  authorId  String
+  channelId String
+
+  author    User     @relation("AuthorMessages", fields: [authorId], references: [id])
+  channel   Channel  @relation("ChannelMessages", fields: [channelId], references: [id], onDelete: Cascade)
+
+  attachments Attachment[] @relation("MessageAttachments")
+
+  silent    Boolean  @default(false)
+  private   Boolean  @default(false)
+
+  repliedTo  Message[]  @relation("MessageReplies")
+  replies    Message[]  @relation("MessageReplies")
+}
+
+model Attachment {
+  id         String   @id @default(cuid())
+  filename   String
+  title      String
+  url        String
+  mimeType   String?
+  size       Int?
+  
+  messageId  String?
+  message    Message? @relation("MessageAttachments", fields: [messageId], references: [id], onDelete: Cascade)
+  
+  createdAt  DateTime @default(now())
+}
+
+model Server {
+  id          String   @id @default(cuid())
+  ownerId     String
+  name        String
+  description String?
+  icon        String?
+
+  members     ServerMember[] @relation("ServerMembers")
+  channels    Channel[]      @relation("ServerChannel")
+
+  createdAt   DateTime @default(now())
+}
+
+model ServerMember {
+  id         String   @id @default(cuid())
+  serverId   String
+  memberId   String
+
+  displayName String?
+  avatar      String?
+  aboutMe     String?
+
+  server     Server @relation("ServerMembers", fields: [serverId], references: [id], onDelete: Cascade)
+  member     User   @relation("MembersOfServer", fields: [memberId], references: [id])
+
+  joinedAt  DateTime @default(now())
+}
+
+model Channel {
+  id        String   @id @default(cuid())
+  name      String?
+  type      ChannelType
+  
+  icon      String?
+  ownerId   String?
+
+  serverId  String?
+  server    Server?    @relation("ServerChannel", fields: [serverId], references: [id], onDelete: Cascade)
+
+  parentId  String?
+  parent    Channel?  @relation("ChannelCategory", fields: [parentId], references: [id])
+  children  Channel[] @relation("ChannelCategory")
+
+  messages  Message[] @relation("ChannelMessages")
+  recipients ChannelMember[]
+  activeUsers User[] @relation("ActiveChannels")
+}
+
+model ChannelMember {
+  id        String   @id @default(cuid())
+  channelId String
+  userId    String
+
+  channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+enum ChannelType {
+  CATEGORY
+  TEXT
+  DM
+  GROUP_DM
 }
