@@ -15,7 +15,7 @@ Backend for a chat application built with Fastify, TypeScript, and Prisma. A por
 
 ## Structure
 
-​```
+```
 ├── prisma/          # Schema and migrations
 ├── src/
 │   ├── routes/      # Fastify routes
@@ -24,7 +24,8 @@ Backend for a chat application built with Fastify, TypeScript, and Prisma. A por
 │   ├── utils/
 │   └── tests/
 ├── docker-compose.yml
-└── Dockerfile```
+└── Dockerfile
+```
 
 The split between controllers and services is intentional — controllers only deal with HTTP, services handle logic. Each layer is easier to test and extend independently.
 
