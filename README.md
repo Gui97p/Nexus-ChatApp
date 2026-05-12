@@ -1,4 +1,4 @@
-# Nexus ChatApp — backend
+# Nexus ChatApp
 
 Backend for a chat application built with Fastify, TypeScript, and Prisma. A portfolio project focused on modular architecture and server-side performance.
 
