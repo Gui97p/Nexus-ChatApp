@@ -33,7 +33,7 @@ The split between controllers and services is intentional — controllers only d
 
 ## Getting started
 
-​```bash
+```bash
 git clone https://github.com/Gui97p/chatapp.git
 cd chatapp
 npm install
